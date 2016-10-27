@@ -36,14 +36,14 @@ public class ProfileSchema implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private Boolean _president;
-    private Boolean _structure;
-    private Boolean _brilliant;
-    private Boolean _evaluator;
-    private Boolean _concrete;
-    private Boolean _explorer;
-    private Boolean _worker;
-    private Boolean _objectivist;
+    private boolean c_president;
+    private boolean c_structure;
+    private boolean c_brilliant;
+    private boolean c_evaluator;
+    private boolean c_concrete;
+    private boolean c_explorer;
+    private boolean c_worker;
+    private boolean c_objectivist;
 
     public Long getId() {
         return id;
@@ -53,68 +53,76 @@ public class ProfileSchema implements Serializable {
         this.id = id;
     }
 
-    public Boolean getPresident() {
-        return _president;
+    public ActivityEntity getActivity() {
+        return activity;
     }
 
-    public void setPresident(Boolean _president) {
-        this._president = _president;
+    public void setActivity(ActivityEntity activity) {
+        this.activity = activity;
     }
 
-    public Boolean getStructure() {
-        return _structure;
+    public boolean isPresident() {
+        return c_president;
     }
 
-    public void setStructure(Boolean _structure) {
-        this._structure = _structure;
+    public void setPresident(boolean president) {
+        this.c_president = president;
     }
 
-    public Boolean getBrilliant() {
-        return _brilliant;
+    public boolean isStructure() {
+        return c_structure;
     }
 
-    public void setBrilliant(Boolean _brilliant) {
-        this._brilliant = _brilliant;
+    public void setStructure(boolean structure) {
+        this.c_structure = structure;
     }
 
-    public Boolean getEvaluator() {
-        return _evaluator;
+    public boolean isBrilliant() {
+        return c_brilliant;
     }
 
-    public void setEvaluator(Boolean _evaluator) {
-        this._evaluator = _evaluator;
+    public void setBrilliant(boolean brilliant) {
+        this.c_brilliant = brilliant;
     }
 
-    public Boolean getConcrete() {
-        return _concrete;
+    public boolean isEvaluator() {
+        return c_evaluator;
     }
 
-    public void setConcrete(Boolean _concrete) {
-        this._concrete = _concrete;
+    public void setEvaluator(boolean evaluator) {
+        this.c_evaluator = evaluator;
     }
 
-    public Boolean getExplorer() {
-        return _explorer;
+    public boolean isConcrete() {
+        return c_concrete;
     }
 
-    public void setExplorer(Boolean _explorer) {
-        this._explorer = _explorer;
+    public void setConcrete(boolean concrete) {
+        this.c_concrete = concrete;
     }
 
-    public Boolean getWorker() {
-        return _worker;
+    public boolean isExplorer() {
+        return c_explorer;
     }
 
-    public void setWorker(Boolean _worker) {
-        this._worker = _worker;
+    public void setExplorer(boolean explorer) {
+        this.c_explorer = explorer;
     }
 
-    public Boolean getObjectivist() {
-        return _objectivist;
+    public boolean isWorker() {
+        return c_worker;
     }
 
-    public void setObjectivist(Boolean _objectivist) {
-        this._objectivist = _objectivist;
+    public void setWorker(boolean worker) {
+        this.c_worker = worker;
+    }
+
+    public boolean isObjectivist() {
+        return c_objectivist;
+    }
+
+    public void setObjectivist(boolean objectivist) {
+        this.c_objectivist = objectivist;
     }
 
     @Override

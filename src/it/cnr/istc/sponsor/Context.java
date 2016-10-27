@@ -14,37 +14,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.cnr.istc.sponsor.db;
+package it.cnr.istc.sponsor;
 
-import java.util.Collection;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import javafx.stage.Stage;
 
 /**
  *
  * @author Riccardo De Benedictis <riccardo.debenedictis@istc.cnr.it>
  */
-public class Storage {
+public class Context {
 
-    private static Storage _instance;
-    private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("SpONSOR_PU");
-    private final EntityManager em = emf.createEntityManager();
+    private static Context _instance;
+    private Stage stage;
 
-    public Collection<UserEntity> getAllUsers() {
-        return em.createQuery("SELECT u FROM UserEntity u", UserEntity.class).getResultList();
+    private Context() {
     }
 
-    public Collection<ActivityEntity> getAllActivities() {
-        return em.createQuery("SELECT a FROM ActivityEntity a", ActivityEntity.class).getResultList();
+    public Stage getStage() {
+        return stage;
     }
 
-    private Storage() {
+    public void setStage(Stage stage) {
+        this.stage = stage;
     }
 
-    public static Storage getInstance() {
+    public static Context getInstance() {
         if (_instance == null) {
-            _instance = new Storage();
+            _instance = new Context();
         }
         return _instance;
     }

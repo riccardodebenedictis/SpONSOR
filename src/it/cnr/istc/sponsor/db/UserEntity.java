@@ -33,16 +33,16 @@ public class UserEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String _first_name;
-    private String _last_name;
-    private Integer _president;
-    private Integer _structure;
-    private Integer _brilliant;
-    private Integer _evaluator;
-    private Integer _concrete;
-    private Integer _explorer;
-    private Integer _worker;
-    private Integer _objectivist;
+    private String firstName;
+    private String lastName;
+    private int c_president;
+    private int c_structure;
+    private int c_brilliant;
+    private int c_evaluator;
+    private int c_concrete;
+    private int c_explorer;
+    private int c_worker;
+    private int c_objectivist;
 
     public Long getId() {
         return id;
@@ -53,83 +53,83 @@ public class UserEntity implements Serializable {
     }
 
     public String getFirstName() {
-        return _first_name;
+        return firstName;
     }
 
-    public void setFirstName(String _first_name) {
-        this._first_name = _first_name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getLastName() {
-        return _last_name;
+        return lastName;
     }
 
-    public void setLastName(String _last_name) {
-        this._last_name = _last_name;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
-    public Integer getPresident() {
-        return _president;
+    public int getPresident() {
+        return c_president;
     }
 
-    public void setPresident(Integer _president) {
-        this._president = _president;
+    public void setPresident(int president) {
+        this.c_president = president;
     }
 
-    public Integer getStructure() {
-        return _structure;
+    public int getStructure() {
+        return c_structure;
     }
 
-    public void setStructure(Integer _structure) {
-        this._structure = _structure;
+    public void setStructure(int structure) {
+        this.c_structure = structure;
     }
 
-    public Integer getBrilliant() {
-        return _brilliant;
+    public int getBrilliant() {
+        return c_brilliant;
     }
 
-    public void setBrilliant(Integer _brilliant) {
-        this._brilliant = _brilliant;
+    public void setBrilliant(int brilliant) {
+        this.c_brilliant = brilliant;
     }
 
-    public Integer getEvaluator() {
-        return _evaluator;
+    public int getEvaluator() {
+        return c_evaluator;
     }
 
-    public void setEvaluator(Integer _evaluator) {
-        this._evaluator = _evaluator;
+    public void setEvaluator(int evaluator) {
+        this.c_evaluator = evaluator;
     }
 
-    public Integer getConcrete() {
-        return _concrete;
+    public int getConcrete() {
+        return c_concrete;
     }
 
-    public void setConcrete(Integer _concrete) {
-        this._concrete = _concrete;
+    public void setConcrete(int concrete) {
+        this.c_concrete = concrete;
     }
 
-    public Integer getExplorer() {
-        return _explorer;
+    public int getExplorer() {
+        return c_explorer;
     }
 
-    public void setExplorer(Integer _explorer) {
-        this._explorer = _explorer;
+    public void setExplorer(int explorer) {
+        this.c_explorer = explorer;
     }
 
-    public Integer getWorker() {
-        return _worker;
+    public int getWorker() {
+        return c_worker;
     }
 
-    public void setWorker(Integer _worker) {
-        this._worker = _worker;
+    public void setWorker(int worker) {
+        this.c_worker = worker;
     }
 
-    public Integer getObjectivist() {
-        return _objectivist;
+    public int getObjectivist() {
+        return c_objectivist;
     }
 
-    public void setObjectivist(Integer _objectivist) {
-        this._objectivist = _objectivist;
+    public void setObjectivist(int objectivist) {
+        this.c_objectivist = objectivist;
     }
 
     @Override

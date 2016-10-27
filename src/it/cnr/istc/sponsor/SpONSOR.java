@@ -28,7 +28,12 @@ public class SpONSOR extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        Context context = Context.getInstance();
+        context.setStage(primaryStage);
         Storage instance = Storage.getInstance();
+        instance.getAllUsers().forEach((user) -> {
+            System.out.println(user.getFirstName() + " " + user.getLastName());
+        });
     }
 
     /**
