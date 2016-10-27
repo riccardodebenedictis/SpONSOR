@@ -39,6 +39,24 @@ public class Storage {
         return em.createQuery("SELECT a FROM ActivityEntity a", ActivityEntity.class).getResultList();
     }
 
+    public void persist(UserEntity entity) {
+        em.getTransaction().begin();
+        em.persist(entity);
+        em.getTransaction().commit();
+    }
+
+    public void merge(UserEntity entity) {
+        em.getTransaction().begin();
+        em.merge(entity);
+        em.getTransaction().commit();
+    }
+
+    public void remove(UserEntity entity) {
+        em.getTransaction().begin();
+        em.remove(entity);
+        em.getTransaction().commit();
+    }
+
     private Storage() {
     }
 

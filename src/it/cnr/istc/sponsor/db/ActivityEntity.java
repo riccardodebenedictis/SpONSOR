@@ -20,11 +20,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
 
 /**
  *
@@ -37,6 +39,11 @@ public class ActivityEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    private String name;
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    private Date startTime;
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    private Date endTime;
     @OneToMany(mappedBy = "activity")
     private final Collection<ProfileSchema> schemas = new ArrayList<>();
 
@@ -46,6 +53,30 @@ public class ActivityEntity implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Date getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
     }
 
     public void addProfileSchema(ProfileSchema schema) {

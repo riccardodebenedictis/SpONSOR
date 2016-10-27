@@ -16,8 +16,12 @@
  */
 package it.cnr.istc.sponsor;
 
-import it.cnr.istc.sponsor.db.Storage;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
@@ -30,10 +34,14 @@ public class SpONSOR extends Application {
     public void start(Stage primaryStage) {
         Context context = Context.getInstance();
         context.setStage(primaryStage);
-        Storage instance = Storage.getInstance();
-        instance.getAllUsers().forEach((user) -> {
-            System.out.println(user.getFirstName() + " " + user.getLastName());
-        });
+        FXMLLoader loader = new FXMLLoader(SpONSOR.class.getResource("main.fxml"));
+        try {
+            primaryStage.setScene(new Scene(loader.load()));
+        } catch (IOException ex) {
+            Logger.getLogger(SpONSOR.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        primaryStage.setTitle("SpONSOR");
+        primaryStage.show();
     }
 
     /**
