@@ -29,6 +29,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.NumberStringConverter;
+import jfxtras.scene.control.agenda.Agenda;
 
 /**
  * FXML Controller class
@@ -63,6 +64,8 @@ public class MainController implements Initializable {
     private TableColumn<UserView, Number> worker;
     @FXML
     private TableColumn<UserView, Number> objectivist;
+    @FXML
+    private Agenda agenda;
 
     /**
      * Initializes the controller class.
