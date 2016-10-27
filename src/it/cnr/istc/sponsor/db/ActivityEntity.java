@@ -17,10 +17,14 @@
 package it.cnr.istc.sponsor.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  *
@@ -33,6 +37,8 @@ public class ActivityEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @OneToMany(mappedBy = "activity")
+    private final Collection<ProfileSchema> schemas = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -40,6 +46,18 @@ public class ActivityEntity implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void addProfileSchema(ProfileSchema schema) {
+        schemas.add(schema);
+    }
+
+    public void removeProfileSchema(ProfileSchema schema) {
+        schemas.remove(schema);
+    }
+
+    public Collection<ProfileSchema> getSchemas() {
+        return Collections.unmodifiableCollection(schemas);
     }
 
     @Override
@@ -56,10 +74,7 @@ public class ActivityEntity implements Serializable {
             return false;
         }
         ActivityEntity other = (ActivityEntity) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return !((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id)));
     }
 
     @Override

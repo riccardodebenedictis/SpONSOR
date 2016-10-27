@@ -4,6 +4,7 @@
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>it.cnr.istc.sponsor.db.ActivityEntity</class>
     <class>it.cnr.istc.sponsor.db.UserEntity</class>
+    <class>it.cnr.istc.sponsor.db.ProfileSchema</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:derby:SpONSOR_DB;create=true"/>
       <property name="javax.persistence.jdbc.user" value="SpONSOR"/>

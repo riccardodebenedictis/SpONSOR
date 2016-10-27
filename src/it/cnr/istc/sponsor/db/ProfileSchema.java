@@ -21,28 +21,29 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 /**
  *
  * @author Riccardo De Benedictis <riccardo.debenedictis@istc.cnr.it>
  */
 @Entity
-public class UserEntity implements Serializable {
+public class ProfileSchema implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    @ManyToOne
+    private ActivityEntity activity;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String _first_name;
-    private String _last_name;
-    private Integer _president;
-    private Integer _structure;
-    private Integer _brilliant;
-    private Integer _evaluator;
-    private Integer _concrete;
-    private Integer _explorer;
-    private Integer _worker;
-    private Integer _objectivist;
+    private Boolean _president;
+    private Boolean _structure;
+    private Boolean _brilliant;
+    private Boolean _evaluator;
+    private Boolean _concrete;
+    private Boolean _explorer;
+    private Boolean _worker;
+    private Boolean _objectivist;
 
     public Long getId() {
         return id;
@@ -52,83 +53,67 @@ public class UserEntity implements Serializable {
         this.id = id;
     }
 
-    public String getFirstName() {
-        return _first_name;
-    }
-
-    public void setFirstName(String _first_name) {
-        this._first_name = _first_name;
-    }
-
-    public String getLastName() {
-        return _last_name;
-    }
-
-    public void setLastName(String _last_name) {
-        this._last_name = _last_name;
-    }
-
-    public Integer getPresident() {
+    public Boolean getPresident() {
         return _president;
     }
 
-    public void setPresident(Integer _president) {
+    public void setPresident(Boolean _president) {
         this._president = _president;
     }
 
-    public Integer getStructure() {
+    public Boolean getStructure() {
         return _structure;
     }
 
-    public void setStructure(Integer _structure) {
+    public void setStructure(Boolean _structure) {
         this._structure = _structure;
     }
 
-    public Integer getBrilliant() {
+    public Boolean getBrilliant() {
         return _brilliant;
     }
 
-    public void setBrilliant(Integer _brilliant) {
+    public void setBrilliant(Boolean _brilliant) {
         this._brilliant = _brilliant;
     }
 
-    public Integer getEvaluator() {
+    public Boolean getEvaluator() {
         return _evaluator;
     }
 
-    public void setEvaluator(Integer _evaluator) {
+    public void setEvaluator(Boolean _evaluator) {
         this._evaluator = _evaluator;
     }
 
-    public Integer getConcrete() {
+    public Boolean getConcrete() {
         return _concrete;
     }
 
-    public void setConcrete(Integer _concrete) {
+    public void setConcrete(Boolean _concrete) {
         this._concrete = _concrete;
     }
 
-    public Integer getExplorer() {
+    public Boolean getExplorer() {
         return _explorer;
     }
 
-    public void setExplorer(Integer _explorer) {
+    public void setExplorer(Boolean _explorer) {
         this._explorer = _explorer;
     }
 
-    public Integer getWorker() {
+    public Boolean getWorker() {
         return _worker;
     }
 
-    public void setWorker(Integer _worker) {
+    public void setWorker(Boolean _worker) {
         this._worker = _worker;
     }
 
-    public Integer getObjectivist() {
+    public Boolean getObjectivist() {
         return _objectivist;
     }
 
-    public void setObjectivist(Integer _objectivist) {
+    public void setObjectivist(Boolean _objectivist) {
         this._objectivist = _objectivist;
     }
 
@@ -142,15 +127,15 @@ public class UserEntity implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof UserEntity)) {
+        if (!(object instanceof ProfileSchema)) {
             return false;
         }
-        UserEntity other = (UserEntity) object;
+        ProfileSchema other = (ProfileSchema) object;
         return !((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id)));
     }
 
     @Override
     public String toString() {
-        return "it.cnr.istc.sponsor.db.User[ id=" + id + " ]";
+        return "it.cnr.istc.sponsor.db.ProfileSchema[ id=" + id + " ]";
     }
 }
