@@ -16,6 +16,10 @@
  */
 package it.cnr.istc.sponsor.db;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
 /**
  *
  * @author Riccardo De Benedictis <riccardo.debenedictis@istc.cnr.it>
@@ -23,6 +27,8 @@ package it.cnr.istc.sponsor.db;
 public class Storage {
 
     private static Storage _instance;
+    private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("SpONSOR_PU");
+    private final EntityManager em = emf.createEntityManager();
 
     private Storage() {
     }

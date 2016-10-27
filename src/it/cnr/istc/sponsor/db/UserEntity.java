@@ -27,7 +27,7 @@ import javax.persistence.Id;
  * @author Riccardo De Benedictis <riccardo.debenedictis@istc.cnr.it>
  */
 @Entity
-public class Activity implements Serializable {
+public class UserEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -52,10 +52,10 @@ public class Activity implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Activity)) {
+        if (!(object instanceof UserEntity)) {
             return false;
         }
-        Activity other = (Activity) object;
+        UserEntity other = (UserEntity) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -64,6 +64,6 @@ public class Activity implements Serializable {
 
     @Override
     public String toString() {
-        return "it.cnr.istc.sponsor.db.Activity[ id=" + id + " ]";
+        return "it.cnr.istc.sponsor.db.User[ id=" + id + " ]";
     }
 }
