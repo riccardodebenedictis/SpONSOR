@@ -21,6 +21,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 
 /**
  *
@@ -51,6 +52,38 @@ public class UserView {
         this.explorer = new SimpleIntegerProperty(entity.getExplorer());
         this.worker = new SimpleIntegerProperty(entity.getWorker());
         this.objectivist = new SimpleIntegerProperty(entity.getObjectivist());
+
+        this.firstName.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            entity.setFirstName(newValue);
+        });
+        this.lastName.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            entity.setLastName(newValue);
+        });
+        this.president.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setPresident(newValue.intValue());
+        });
+        this.structure.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setStructure(newValue.intValue());
+        });
+        this.brilliant.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setBrilliant(newValue.intValue());
+        });
+        this.evaluator.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setEvaluator(newValue.intValue());
+        });
+        this.concrete.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setConcrete(newValue.intValue());
+        });
+        this.explorer.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setExplorer(newValue.intValue());
+        });
+        this.worker.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setWorker(newValue.intValue());
+        });
+        this.objectivist.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setObjectivist(newValue.intValue());
+        });
+
         this.entity = entity;
     }
 
