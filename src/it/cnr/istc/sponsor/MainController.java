@@ -16,6 +16,9 @@
  */
 package it.cnr.istc.sponsor;
 
+import com.microsoft.z3.ArithExpr;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Optimize;
 import it.cnr.istc.sponsor.db.ActivityEntity;
 import it.cnr.istc.sponsor.db.Storage;
 import it.cnr.istc.sponsor.db.UserEntity;
@@ -23,10 +26,18 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -197,5 +208,136 @@ public class MainController implements Initializable {
         });
         users.getItems().removeAll(users.getSelectionModel().getSelectedItems());
         users.getSelectionModel().selectFirst();
+    }
+
+    public void solve() {
+        List<User> all_users = new ArrayList<>(users.getItems());
+        Collections.sort(all_users, (User u1, User u2) -> {
+            String u1_val = u1.lastName.getValue() + " " + u1.firstName.getValue();
+            String u2_val = u2.lastName.getValue() + " " + u2.firstName.getValue();
+            return u1_val.compareTo(u2_val);
+        });
+        List<Schema> all_schemas = new ArrayList<>();
+        for (Activity activity : activities_map.values()) {
+            all_schemas.addAll(activity.schemas.getValue());
+        }
+        Collections.sort(all_schemas, (Schema s1, Schema s2) -> s1.getActivity().start.getValue().compareTo(s2.getActivity().start.getValue()));
+        Map<Schema, Integer> schema_id = new IdentityHashMap<>();
+        for (int i = 0; i < all_schemas.size(); i++) {
+            schema_id.put(all_schemas.get(i), i);
+        }
+
+        HashMap<String, String> cfg = new HashMap<>();
+        cfg.put("model", "true");
+        com.microsoft.z3.Context ctx = new com.microsoft.z3.Context(cfg);
+        Optimize o = ctx.mkOptimize();
+
+        // the 0-1 variables..
+        IntExpr[][] vars = new IntExpr[all_users.size()][all_schemas.size()];
+
+        // the objective function..
+        ArithExpr[] objective = new ArithExpr[all_users.size() * all_schemas.size()];
+
+        int expr_id = 0;
+        for (int i = 0; i < vars.length; i++) {
+            for (int j = 0; j < vars[i].length; j++) {
+                vars[i][j] = ctx.mkIntConst("x_" + i + "_" + j);
+                o.Add(ctx.mkGe(vars[i][j], ctx.mkInt("0")), ctx.mkLe(vars[i][j], ctx.mkInt("1")));
+                objective[expr_id++] = ctx.mkMul(vars[i][j], ctx.mkReal(Double.toString(match_rate(all_users.get(i), all_schemas.get(j)))));
+            }
+        }
+
+        o.MkMaximize(ctx.mkAdd(objective));
+
+        // any users should do something..
+        for (int i = 0; i < vars.length; i++) {
+            o.Add(ctx.mkGe(ctx.mkAdd(vars[i]), ctx.mkInt("1")));
+        }
+
+        // every schema should be done by someone..
+        for (int i = 0; i < vars.length; i++) {
+            ArithExpr[] schema = new ArithExpr[vars[i].length];
+            for (int j = 0; j < vars[i].length; j++) {
+                schema[j] = vars[i][j];
+            }
+            o.Add(ctx.mkEq(ctx.mkAdd(schema), ctx.mkInt("1")));
+        }
+
+        // overlapping schemas cannot be done by the same person..
+        Map<LocalDateTime, Collection<Schema>> starting_schemas = new HashMap<>();
+        Map<LocalDateTime, Collection<Schema>> ending_schemas = new HashMap<>();
+        Set<LocalDateTime> pulses = new HashSet<>();
+        for (Activity activity : activities_map.values()) {
+            if (!starting_schemas.containsKey(activity.start.getValue())) {
+                starting_schemas.put(activity.start.getValue(), new ArrayList<>());
+            }
+            if (!ending_schemas.containsKey(activity.end.getValue())) {
+                ending_schemas.put(activity.end.getValue(), new ArrayList<>());
+            }
+            starting_schemas.get(activity.start.getValue()).addAll(activity.schemas.getValue());
+            ending_schemas.get(activity.end.getValue()).addAll(activity.schemas.getValue());
+            pulses.add(activity.start.getValue());
+            pulses.add(activity.end.getValue());
+        }
+
+        // Sort current pulses
+        LocalDateTime[] c_pulses_array = pulses.toArray(new LocalDateTime[pulses.size()]);
+        Arrays.sort(c_pulses_array);
+
+        List<Schema> overlapping_schemas = new ArrayList<>();
+        for (int p = 0; p < c_pulses_array.length; p++) {
+            overlapping_schemas.addAll(starting_schemas.get(c_pulses_array[p]));
+            overlapping_schemas.removeAll(ending_schemas.get(c_pulses_array[p]));
+            if (overlapping_schemas.size() > 1) {
+                for (int i = 0; i < vars.length; i++) {
+                    ArithExpr[] overlapping = new ArithExpr[overlapping_schemas.size()];
+                    for (int j = 0; j < overlapping.length; j++) {
+                        overlapping[i] = vars[i][schema_id.get(overlapping_schemas.get(j))];
+                    }
+                    o.Add(ctx.mkLe(ctx.mkAdd(overlapping), ctx.mkInt("1")));
+                }
+            }
+        }
+
+        switch (o.Check()) {
+            case UNSATISFIABLE:
+                System.out.println("unsatisfable..");
+                break;
+            case SATISFIABLE:
+                System.out.println("Solution found!");
+                System.out.println(o.getModel());
+                break;
+            default:
+                throw new AssertionError(o.Check().name());
+        }
+    }
+
+    private static double match_rate(User user, Schema schema) {
+        double mr = 0;
+        if (schema.president.getValue()) {
+            mr += user.president.getValue();
+        }
+        if (schema.structure.getValue()) {
+            mr += user.structure.getValue();
+        }
+        if (schema.brilliant.getValue()) {
+            mr += user.brilliant.getValue();
+        }
+        if (schema.evaluator.getValue()) {
+            mr += user.evaluator.getValue();
+        }
+        if (schema.concrete.getValue()) {
+            mr += user.concrete.getValue();
+        }
+        if (schema.explorer.getValue()) {
+            mr += user.explorer.getValue();
+        }
+        if (schema.worker.getValue()) {
+            mr += user.worker.getValue();
+        }
+        if (schema.objectivist.getValue()) {
+            mr += user.objectivist.getValue();
+        }
+        return mr;
     }
 }

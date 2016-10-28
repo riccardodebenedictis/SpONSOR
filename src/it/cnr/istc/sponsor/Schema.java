@@ -36,9 +36,10 @@ public class Schema {
     public final BooleanProperty explorer;
     public final BooleanProperty worker;
     public final BooleanProperty objectivist;
+    private final Activity activity;
     private final ProfileSchema entity;
 
-    public Schema(ProfileSchema entity) {
+    public Schema(Activity activity, ProfileSchema entity) {
         this.president = new SimpleBooleanProperty(entity.isPresident());
         this.structure = new SimpleBooleanProperty(entity.isStructure());
         this.brilliant = new SimpleBooleanProperty(entity.isBrilliant());
@@ -81,7 +82,12 @@ public class Schema {
             Storage.getInstance().merge(entity);
         });
 
+        this.activity = activity;
         this.entity = entity;
+    }
+
+    public Activity getActivity() {
+        return activity;
     }
 
     public ProfileSchema getEntity() {

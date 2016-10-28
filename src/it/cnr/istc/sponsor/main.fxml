@@ -29,7 +29,7 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Edit">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="Delete" />
+                        <MenuItem mnemonicParsing="false" onAction="#solve" text="Solve" />
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
@@ -60,25 +60,25 @@
                                     <GridPane.margin>
                                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                     </GridPane.margin>
-                           <graphic>
-                              <Glyph text="+">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
-                              </Glyph>
-                           </graphic>
+                                    <graphic>
+                                        <Glyph text="+">
+                                            <font>
+                                                <Font size="14.0" />
+                                            </font>
+                                        </Glyph>
+                                    </graphic>
                                 </Button>
                                 <Button fx:id="removeUsers" disable="true" mnemonicParsing="false" onAction="#removeSelectedUsers" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
                                     <GridPane.margin>
                                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                     </GridPane.margin>
-                           <graphic>
-                              <Glyph text="-">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
-                              </Glyph>
-                           </graphic>
+                                    <graphic>
+                                        <Glyph text="-">
+                                            <font>
+                                                <Font size="14.0" />
+                                            </font>
+                                        </Glyph>
+                                    </graphic>
                                 </Button>
                                 <TableView fx:id="users" editable="true" GridPane.columnIndex="1" GridPane.rowSpan="3">
                                     <columns>
@@ -96,9 +96,9 @@
                                     <columnResizePolicy>
                                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                     </columnResizePolicy>
-                           <GridPane.margin>
-                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                           </GridPane.margin>
+                                    <GridPane.margin>
+                                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                    </GridPane.margin>
                                 </TableView>
                             </children>
                         </GridPane>

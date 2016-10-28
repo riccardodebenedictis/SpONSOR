@@ -65,13 +65,13 @@
             <GridPane.margin>
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
-         <graphic>
-            <Glyph text="+">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </Glyph>
-         </graphic>
+            <graphic>
+                <Glyph text="+">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Glyph>
+            </graphic>
         </Button>
         <Button fx:id="removeSchemas" disable="true" mnemonicParsing="false" onAction="#removeSchemas" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
             <opaqueInsets>
@@ -80,13 +80,13 @@
             <GridPane.margin>
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
-         <graphic>
-            <Glyph text="-">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </Glyph>
-         </graphic>
+            <graphic>
+                <Glyph text="-">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Glyph>
+            </graphic>
         </Button>
         <TableView fx:id="schemas" editable="true" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.rowSpan="3">
             <columns>

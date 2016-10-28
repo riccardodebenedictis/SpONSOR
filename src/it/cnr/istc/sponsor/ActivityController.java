@@ -131,7 +131,7 @@ public class ActivityController implements Initializable {
 
     public void addSchema() {
         Activity activity = Context.getInstance().getSelectedActivity();
-        Schema schema = new Schema(new ProfileSchema());
+        Schema schema = new Schema(activity, new ProfileSchema());
         schema.getEntity().setActivity(activity.getEntity());
         Storage.getInstance().persist(schema.getEntity());
         activity.schemas.getValue().add(schema);

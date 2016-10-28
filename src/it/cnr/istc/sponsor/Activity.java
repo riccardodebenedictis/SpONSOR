@@ -52,7 +52,7 @@ public class Activity {
 
         this.schemas = new SimpleObjectProperty<>(FXCollections.observableArrayList());
         for (ProfileSchema schema : entity.getSchemas()) {
-            schemas.getValue().add(new Schema(schema));
+            schemas.getValue().add(new Schema(this, schema));
         }
 
         this.name.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
