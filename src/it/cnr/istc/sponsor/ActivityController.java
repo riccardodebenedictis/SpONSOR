@@ -29,6 +29,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import jfxtras.scene.control.LocalDateTimeTextField;
 
 /**
@@ -94,6 +95,15 @@ public class ActivityController implements Initializable {
             activity.getAppointment().setEndLocalDateTime(newValue);
             Context.getInstance().getAgenda().refresh();
         });
+
+        president.setCellFactory(CheckBoxTableCell.forTableColumn(president));
+        structure.setCellFactory(CheckBoxTableCell.forTableColumn(structure));
+        brilliant.setCellFactory(CheckBoxTableCell.forTableColumn(brilliant));
+        evaluator.setCellFactory(CheckBoxTableCell.forTableColumn(evaluator));
+        concrete.setCellFactory(CheckBoxTableCell.forTableColumn(concrete));
+        explorer.setCellFactory(CheckBoxTableCell.forTableColumn(explorer));
+        worker.setCellFactory(CheckBoxTableCell.forTableColumn(worker));
+        objectivist.setCellFactory(CheckBoxTableCell.forTableColumn(objectivist));
 
         president.setCellValueFactory(cellData -> cellData.getValue().president);
         structure.setCellValueFactory(cellData -> cellData.getValue().structure);
