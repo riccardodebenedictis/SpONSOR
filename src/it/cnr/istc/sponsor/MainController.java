@@ -255,10 +255,10 @@ public class MainController implements Initializable {
         }
 
         // every schema should be done by someone..
-        for (int i = 0; i < vars.length; i++) {
-            ArithExpr[] schema = new ArithExpr[vars[i].length];
-            for (int j = 0; j < vars[i].length; j++) {
-                schema[j] = vars[i][j];
+        for (int j = 0; j < all_schemas.size(); j++) {
+            ArithExpr[] schema = new ArithExpr[vars.length];
+            for (int i = 0; i < vars.length; i++) {
+                schema[i] = vars[i][j];
             }
             o.Add(ctx.mkEq(ctx.mkAdd(schema), ctx.mkInt("1")));
         }
@@ -286,22 +286,28 @@ public class MainController implements Initializable {
 
         List<Schema> overlapping_schemas = new ArrayList<>();
         for (int p = 0; p < c_pulses_array.length; p++) {
-            overlapping_schemas.addAll(starting_schemas.get(c_pulses_array[p]));
-            overlapping_schemas.removeAll(ending_schemas.get(c_pulses_array[p]));
+            if (starting_schemas.containsKey(c_pulses_array[p])) {
+                overlapping_schemas.addAll(starting_schemas.get(c_pulses_array[p]));
+            }
+            if (ending_schemas.containsKey(c_pulses_array[p])) {
+                overlapping_schemas.removeAll(ending_schemas.get(c_pulses_array[p]));
+            }
             if (overlapping_schemas.size() > 1) {
                 for (int i = 0; i < vars.length; i++) {
                     ArithExpr[] overlapping = new ArithExpr[overlapping_schemas.size()];
                     for (int j = 0; j < overlapping.length; j++) {
-                        overlapping[i] = vars[i][schema_id.get(overlapping_schemas.get(j))];
+                        overlapping[j] = vars[i][schema_id.get(overlapping_schemas.get(j))];
                     }
                     o.Add(ctx.mkLe(ctx.mkAdd(overlapping), ctx.mkInt("1")));
                 }
             }
         }
 
+        System.out.println(o);
+
         switch (o.Check()) {
             case UNSATISFIABLE:
-                System.out.println("unsatisfable..");
+                System.out.println("Unsatisfable..");
                 break;
             case SATISFIABLE:
                 System.out.println("Solution found!");
