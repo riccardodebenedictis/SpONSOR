@@ -21,6 +21,7 @@ import it.cnr.istc.sponsor.db.Storage;
 import it.cnr.istc.sponsor.db.UserEntity;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.IdentityHashMap;
@@ -41,7 +42,6 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.layout.Pane;
 import javafx.util.converter.NumberStringConverter;
 import jfxtras.scene.control.agenda.Agenda;
 
@@ -131,6 +131,17 @@ public class MainController implements Initializable {
 
         users.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        Storage.getInstance().getAllActivities().forEach((entity) -> {
+            Activity activity = new Activity(new Agenda.AppointmentImplLocal()
+                    .withDescription(entity.getName())
+                    .withSummary(entity.getName())
+                    .withStartLocalDateTime(LocalDateTime.ofInstant(entity.getStartTime().toInstant(), ZoneId.systemDefault()))
+                    .withEndLocalDateTime(LocalDateTime.ofInstant(entity.getEndTime().toInstant(), ZoneId.systemDefault()))
+                    .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1")), entity);
+            activities_map.put(activity.getAppointment(), activity);
+            agenda.appointments().add(activity.getAppointment());
+        });
+
         agenda.setNewAppointmentCallback((Agenda.LocalDateTimeRange param) -> {
             Agenda.Appointment appointment = new Agenda.AppointmentImplLocal()
                     .withStartLocalDateTime(param.getStartLocalDateTime())
@@ -139,6 +150,7 @@ public class MainController implements Initializable {
             ActivityEntity entity = new ActivityEntity();
             entity.setStartTime(Date.from(param.getStartLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
             entity.setEndTime(Date.from(param.getEndLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
+            Storage.getInstance().persist(entity);
             activities_map.put(appointment, new Activity(appointment, entity));
             return appointment;
         });
@@ -168,6 +180,8 @@ public class MainController implements Initializable {
                 }
             }
         });
+
+        Context.getInstance().setAgenda(agenda);
     }
 
     public void addUser() {

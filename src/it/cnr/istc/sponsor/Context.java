@@ -17,6 +17,7 @@
 package it.cnr.istc.sponsor;
 
 import javafx.stage.Stage;
+import jfxtras.scene.control.agenda.Agenda;
 
 /**
  *
@@ -26,6 +27,7 @@ public class Context {
 
     private static Context _instance;
     private Stage stage;
+    private Agenda agenda;
     private Activity selected_activity;
 
     private Context() {
@@ -37,6 +39,14 @@ public class Context {
 
     public void setStage(Stage stage) {
         this.stage = stage;
+    }
+
+    public Agenda getAgenda() {
+        return agenda;
+    }
+
+    public void setAgenda(Agenda agenda) {
+        this.agenda = agenda;
     }
 
     public Activity getSelectedActivity() {

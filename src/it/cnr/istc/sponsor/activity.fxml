@@ -56,7 +56,7 @@
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
         </LocalDateTimeTextField>
-        <Button fx:id="addSchema" mnemonicParsing="false" text="Add" GridPane.rowIndex="3">
+        <Button fx:id="addSchema" mnemonicParsing="false" onAction="#addSchema" text="Add" GridPane.rowIndex="3">
             <opaqueInsets>
                 <Insets />
             </opaqueInsets>
@@ -64,7 +64,7 @@
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
         </Button>
-        <Button fx:id="removeSchemas" disable="true" mnemonicParsing="false" text="Remove" GridPane.rowIndex="4">
+        <Button fx:id="removeSchemas" disable="true" mnemonicParsing="false" onAction="#removeSchemas" text="Remove" GridPane.rowIndex="4">
             <opaqueInsets>
                 <Insets />
             </opaqueInsets>

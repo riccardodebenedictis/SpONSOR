@@ -17,16 +17,17 @@
 package it.cnr.istc.sponsor;
 
 import it.cnr.istc.sponsor.db.ActivityEntity;
+import it.cnr.istc.sponsor.db.ProfileSchema;
 import it.cnr.istc.sponsor.db.Storage;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import jfxtras.scene.control.agenda.Agenda;
@@ -40,7 +41,7 @@ public class Activity {
     public final StringProperty name;
     public final ObjectProperty<LocalDateTime> start;
     public final ObjectProperty<LocalDateTime> end;
-    public final ObservableList<Schema> schemas = new SimpleListProperty<>();
+    public final ObjectProperty<ObservableList<Schema>> schemas;
     private final Agenda.Appointment appointment;
     private final ActivityEntity entity;
 
@@ -48,9 +49,11 @@ public class Activity {
         this.name = new SimpleStringProperty(entity.getName());
         this.start = new SimpleObjectProperty<>(LocalDateTime.ofInstant(entity.getStartTime().toInstant(), ZoneId.systemDefault()));
         this.end = new SimpleObjectProperty<>(LocalDateTime.ofInstant(entity.getEndTime().toInstant(), ZoneId.systemDefault()));
-        entity.getSchemas().forEach((schema) -> {
-            schemas.add(new Schema(schema));
-        });
+
+        this.schemas = new SimpleObjectProperty<>(FXCollections.observableArrayList());
+        for (ProfileSchema schema : entity.getSchemas()) {
+            schemas.getValue().add(new Schema(schema));
+        }
 
         this.name.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             appointment.setDescription(newValue);
@@ -68,18 +71,30 @@ public class Activity {
             entity.setEndTime(Date.from(newValue.atZone(ZoneId.systemDefault()).toInstant()));
             Storage.getInstance().merge(entity);
         });
-        this.schemas.addListener((ListChangeListener.Change<? extends Schema> c) -> {
-            c.getAddedSubList().forEach((schema) -> {
-                entity.addProfileSchema(schema.getEntity());
-            });
-            c.getRemoved().forEach((schema) -> {
-                entity.removeProfileSchema(schema.getEntity());
-            });
-            Storage.getInstance().merge(entity);
+        this.schemas.getValue().addListener((ListChangeListener.Change<? extends Schema> c) -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    c.getAddedSubList().forEach((schema) -> {
+                        entity.addProfileSchema(schema.getEntity());
+                    });
+                }
+                if (c.wasRemoved()) {
+                    c.getRemoved().forEach((schema) -> {
+                        entity.removeProfileSchema(schema.getEntity());
+                    });
+                }
+                if (c.wasAdded() || c.wasRemoved()) {
+                    Storage.getInstance().merge(entity);
+                }
+            }
         });
 
         this.appointment = appointment;
         this.entity = entity;
+    }
+
+    public Agenda.Appointment getAppointment() {
+        return appointment;
     }
 
     public ActivityEntity getEntity() {

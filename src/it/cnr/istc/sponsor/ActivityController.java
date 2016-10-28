@@ -16,12 +16,16 @@
  */
 package it.cnr.istc.sponsor;
 
+import it.cnr.istc.sponsor.db.ProfileSchema;
 import it.cnr.istc.sponsor.db.Storage;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ResourceBundle;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -77,6 +81,20 @@ public class ActivityController implements Initializable {
         start.localDateTimeProperty().bindBidirectional(activity.start);
         end.localDateTimeProperty().bindBidirectional(activity.end);
 
+        name.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            activity.getAppointment().setDescription(newValue);
+            activity.getAppointment().setSummary(newValue);
+            Context.getInstance().getAgenda().refresh();
+        });
+        start.localDateTimeProperty().addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
+            activity.getAppointment().setStartLocalDateTime(newValue);
+            Context.getInstance().getAgenda().refresh();
+        });
+        end.localDateTimeProperty().addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
+            activity.getAppointment().setEndLocalDateTime(newValue);
+            Context.getInstance().getAgenda().refresh();
+        });
+
         president.setCellValueFactory(cellData -> cellData.getValue().president);
         structure.setCellValueFactory(cellData -> cellData.getValue().structure);
         brilliant.setCellValueFactory(cellData -> cellData.getValue().brilliant);
@@ -93,7 +111,27 @@ public class ActivityController implements Initializable {
         concrete.setOnEditCommit(cellData -> cellData.getRowValue().concrete.setValue(cellData.getNewValue()));
         explorer.setOnEditCommit(cellData -> cellData.getRowValue().explorer.setValue(cellData.getNewValue()));
         worker.setOnEditCommit(cellData -> cellData.getRowValue().worker.setValue(cellData.getNewValue()));
-        objectivist.setOnEditCommit(cellData -> cellData.getRowValue().objectivist.setValue(cellData.getNewValue())
-        );
+        objectivist.setOnEditCommit(cellData -> cellData.getRowValue().objectivist.setValue(cellData.getNewValue()));
+
+        schemas.itemsProperty().bindBidirectional(activity.schemas);
+        removeSchemas.disableProperty().bind(schemas.getSelectionModel().selectedItemProperty().isNull());
+
+        schemas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    }
+
+    public void addSchema() {
+        Activity activity = Context.getInstance().getSelectedActivity();
+        Schema schema = new Schema(new ProfileSchema());
+        schema.getEntity().setActivity(activity.getEntity());
+        Storage.getInstance().persist(schema.getEntity());
+        activity.schemas.getValue().add(schema);
+    }
+
+    public void removeSchemas() {
+        schemas.getSelectionModel().getSelectedItems().forEach((user) -> {
+            Storage.getInstance().remove(user.getEntity());
+        });
+        schemas.getItems().removeAll(schemas.getSelectionModel().getSelectedItems());
+        schemas.getSelectionModel().selectFirst();
     }
 }
