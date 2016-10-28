@@ -16,6 +16,7 @@
  */
 package it.cnr.istc.sponsor;
 
+import it.cnr.istc.sponsor.db.Storage;
 import it.cnr.istc.sponsor.db.UserEntity;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -27,7 +28,7 @@ import javafx.beans.value.ObservableValue;
  *
  * @author Riccardo De Benedictis <riccardo.debenedictis@istc.cnr.it>
  */
-public class UserView {
+public class User {
 
     public final StringProperty firstName;
     public final StringProperty lastName;
@@ -41,7 +42,7 @@ public class UserView {
     public final IntegerProperty objectivist;
     private final UserEntity entity;
 
-    public UserView(UserEntity entity) {
+    public User(UserEntity entity) {
         this.firstName = new SimpleStringProperty(entity.getFirstName());
         this.lastName = new SimpleStringProperty(entity.getLastName());
         this.president = new SimpleIntegerProperty(entity.getPresident());
@@ -55,33 +56,43 @@ public class UserView {
 
         this.firstName.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             entity.setFirstName(newValue);
+            Storage.getInstance().merge(entity);
         });
         this.lastName.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             entity.setLastName(newValue);
+            Storage.getInstance().merge(entity);
         });
         this.president.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             entity.setPresident(newValue.intValue());
+            Storage.getInstance().merge(entity);
         });
         this.structure.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             entity.setStructure(newValue.intValue());
+            Storage.getInstance().merge(entity);
         });
         this.brilliant.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             entity.setBrilliant(newValue.intValue());
+            Storage.getInstance().merge(entity);
         });
         this.evaluator.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             entity.setEvaluator(newValue.intValue());
+            Storage.getInstance().merge(entity);
         });
         this.concrete.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             entity.setConcrete(newValue.intValue());
+            Storage.getInstance().merge(entity);
         });
         this.explorer.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             entity.setExplorer(newValue.intValue());
+            Storage.getInstance().merge(entity);
         });
         this.worker.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             entity.setWorker(newValue.intValue());
+            Storage.getInstance().merge(entity);
         });
         this.objectivist.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             entity.setObjectivist(newValue.intValue());
+            Storage.getInstance().merge(entity);
         });
 
         this.entity = entity;

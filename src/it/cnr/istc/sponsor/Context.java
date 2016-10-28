@@ -26,6 +26,7 @@ public class Context {
 
     private static Context _instance;
     private Stage stage;
+    private Activity selected_activity;
 
     private Context() {
     }
@@ -36,6 +37,14 @@ public class Context {
 
     public void setStage(Stage stage) {
         this.stage = stage;
+    }
+
+    public Activity getSelectedActivity() {
+        return selected_activity;
+    }
+
+    public void setSelectedActivity(Activity selected_activity) {
+        this.selected_activity = selected_activity;
     }
 
     public static Context getInstance() {

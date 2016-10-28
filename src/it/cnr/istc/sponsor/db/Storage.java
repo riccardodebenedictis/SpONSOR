@@ -57,6 +57,42 @@ public class Storage {
         em.getTransaction().commit();
     }
 
+    public void persist(ActivityEntity entity) {
+        em.getTransaction().begin();
+        em.persist(entity);
+        em.getTransaction().commit();
+    }
+
+    public void merge(ActivityEntity entity) {
+        em.getTransaction().begin();
+        em.merge(entity);
+        em.getTransaction().commit();
+    }
+
+    public void remove(ActivityEntity entity) {
+        em.getTransaction().begin();
+        em.remove(entity);
+        em.getTransaction().commit();
+    }
+
+    public void persist(ProfileSchema entity) {
+        em.getTransaction().begin();
+        em.persist(entity);
+        em.getTransaction().commit();
+    }
+
+    public void merge(ProfileSchema entity) {
+        em.getTransaction().begin();
+        em.merge(entity);
+        em.getTransaction().commit();
+    }
+
+    public void remove(ProfileSchema entity) {
+        em.getTransaction().begin();
+        em.remove(entity);
+        em.getTransaction().commit();
+    }
+
     private Storage() {
     }
 

@@ -16,18 +16,32 @@
  */
 package it.cnr.istc.sponsor;
 
+import it.cnr.istc.sponsor.db.ActivityEntity;
 import it.cnr.istc.sponsor.db.Storage;
 import it.cnr.istc.sponsor.db.UserEntity;
+import java.io.IOException;
 import java.net.URL;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.Pane;
 import javafx.util.converter.NumberStringConverter;
 import jfxtras.scene.control.agenda.Agenda;
 
@@ -43,29 +57,33 @@ public class MainController implements Initializable {
     @FXML
     private Button removeUsers;
     @FXML
-    private TableView<UserView> users;
+    private TableView<User> users;
     @FXML
-    private TableColumn<UserView, String> firstName;
+    private TableColumn<User, String> firstName;
     @FXML
-    private TableColumn<UserView, String> lastName;
+    private TableColumn<User, String> lastName;
     @FXML
-    private TableColumn<UserView, Number> president;
+    private TableColumn<User, Number> president;
     @FXML
-    private TableColumn<UserView, Number> structure;
+    private TableColumn<User, Number> structure;
     @FXML
-    private TableColumn<UserView, Number> brilliant;
+    private TableColumn<User, Number> brilliant;
     @FXML
-    private TableColumn<UserView, Number> evaluator;
+    private TableColumn<User, Number> evaluator;
     @FXML
-    private TableColumn<UserView, Number> concrete;
+    private TableColumn<User, Number> concrete;
     @FXML
-    private TableColumn<UserView, Number> explorer;
+    private TableColumn<User, Number> explorer;
     @FXML
-    private TableColumn<UserView, Number> worker;
+    private TableColumn<User, Number> worker;
     @FXML
-    private TableColumn<UserView, Number> objectivist;
+    private TableColumn<User, Number> objectivist;
     @FXML
     private Agenda agenda;
+    @FXML
+    private SplitPane split_pane;
+    private final DoubleProperty divider_position = new SimpleDoubleProperty(0.7);
+    private final Map<Agenda.Appointment, Activity> activities_map = new IdentityHashMap<>();
 
     /**
      * Initializes the controller class.
@@ -86,68 +104,74 @@ public class MainController implements Initializable {
         worker.setCellValueFactory(cellData -> cellData.getValue().worker);
         objectivist.setCellValueFactory(cellData -> cellData.getValue().objectivist);
 
-        firstName.setCellFactory(TextFieldTableCell.<UserView>forTableColumn());
-        lastName.setCellFactory(TextFieldTableCell.<UserView>forTableColumn());
-        president.setCellFactory(TextFieldTableCell.<UserView, Number>forTableColumn(new NumberStringConverter()));
-        structure.setCellFactory(TextFieldTableCell.<UserView, Number>forTableColumn(new NumberStringConverter()));
-        brilliant.setCellFactory(TextFieldTableCell.<UserView, Number>forTableColumn(new NumberStringConverter()));
-        evaluator.setCellFactory(TextFieldTableCell.<UserView, Number>forTableColumn(new NumberStringConverter()));
-        concrete.setCellFactory(TextFieldTableCell.<UserView, Number>forTableColumn(new NumberStringConverter()));
-        explorer.setCellFactory(TextFieldTableCell.<UserView, Number>forTableColumn(new NumberStringConverter()));
-        worker.setCellFactory(TextFieldTableCell.<UserView, Number>forTableColumn(new NumberStringConverter()));
-        objectivist.setCellFactory(TextFieldTableCell.<UserView, Number>forTableColumn(new NumberStringConverter()));
+        firstName.setCellFactory(TextFieldTableCell.<User>forTableColumn());
+        lastName.setCellFactory(TextFieldTableCell.<User>forTableColumn());
+        president.setCellFactory(TextFieldTableCell.<User, Number>forTableColumn(new NumberStringConverter()));
+        structure.setCellFactory(TextFieldTableCell.<User, Number>forTableColumn(new NumberStringConverter()));
+        brilliant.setCellFactory(TextFieldTableCell.<User, Number>forTableColumn(new NumberStringConverter()));
+        evaluator.setCellFactory(TextFieldTableCell.<User, Number>forTableColumn(new NumberStringConverter()));
+        concrete.setCellFactory(TextFieldTableCell.<User, Number>forTableColumn(new NumberStringConverter()));
+        explorer.setCellFactory(TextFieldTableCell.<User, Number>forTableColumn(new NumberStringConverter()));
+        worker.setCellFactory(TextFieldTableCell.<User, Number>forTableColumn(new NumberStringConverter()));
+        objectivist.setCellFactory(TextFieldTableCell.<User, Number>forTableColumn(new NumberStringConverter()));
 
-        firstName.setOnEditCommit(cellData -> {
-            cellData.getRowValue().firstName.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        lastName.setOnEditCommit(cellData -> {
-            cellData.getRowValue().lastName.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        president.setOnEditCommit(cellData -> {
-            cellData.getRowValue().president.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        structure.setOnEditCommit(cellData -> {
-            cellData.getRowValue().structure.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        brilliant.setOnEditCommit(cellData -> {
-            cellData.getRowValue().brilliant.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        evaluator.setOnEditCommit(cellData -> {
-            cellData.getRowValue().evaluator.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        concrete.setOnEditCommit(cellData -> {
-            cellData.getRowValue().concrete.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        explorer.setOnEditCommit(cellData -> {
-            cellData.getRowValue().explorer.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        worker.setOnEditCommit(cellData -> {
-            cellData.getRowValue().worker.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
-        objectivist.setOnEditCommit(cellData -> {
-            cellData.getRowValue().objectivist.setValue(cellData.getNewValue());
-            Storage.getInstance().merge(cellData.getRowValue().getEntity());
-        });
+        firstName.setOnEditCommit(cellData -> cellData.getRowValue().firstName.setValue(cellData.getNewValue()));
+        lastName.setOnEditCommit(cellData -> cellData.getRowValue().lastName.setValue(cellData.getNewValue()));
+        president.setOnEditCommit(cellData -> cellData.getRowValue().president.setValue(cellData.getNewValue()));
+        structure.setOnEditCommit(cellData -> cellData.getRowValue().structure.setValue(cellData.getNewValue()));
+        brilliant.setOnEditCommit(cellData -> cellData.getRowValue().brilliant.setValue(cellData.getNewValue()));
+        evaluator.setOnEditCommit(cellData -> cellData.getRowValue().evaluator.setValue(cellData.getNewValue()));
+        concrete.setOnEditCommit(cellData -> cellData.getRowValue().concrete.setValue(cellData.getNewValue()));
+        explorer.setOnEditCommit(cellData -> cellData.getRowValue().explorer.setValue(cellData.getNewValue()));
+        worker.setOnEditCommit(cellData -> cellData.getRowValue().worker.setValue(cellData.getNewValue()));
+        objectivist.setOnEditCommit(cellData -> cellData.getRowValue().objectivist.setValue(cellData.getNewValue()));
 
-        users.getItems().addAll(Storage.getInstance().getAllUsers().stream().map(user -> new UserView(user)).collect(Collectors.toList()));
+        users.getItems().addAll(Storage.getInstance().getAllUsers().stream().map(user -> new User(user)).collect(Collectors.toList()));
         removeUsers.disableProperty().bind(users.getSelectionModel().selectedItemProperty().isNull());
 
-        users.getSelectionModel().setSelectionMode(
-                SelectionMode.MULTIPLE
-        );
+        users.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        agenda.setNewAppointmentCallback((Agenda.LocalDateTimeRange param) -> {
+            Agenda.Appointment appointment = new Agenda.AppointmentImplLocal()
+                    .withStartLocalDateTime(param.getStartLocalDateTime())
+                    .withEndLocalDateTime(param.getEndLocalDateTime())
+                    .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1"));
+            ActivityEntity entity = new ActivityEntity();
+            entity.setStartTime(Date.from(param.getStartLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
+            entity.setEndTime(Date.from(param.getEndLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
+            activities_map.put(appointment, new Activity(appointment, entity));
+            return appointment;
+        });
+        agenda.setAppointmentChangedCallback((Agenda.Appointment param) -> {
+            Activity view = activities_map.get(param);
+            view.start.setValue(param.getStartLocalDateTime());
+            view.end.setValue(param.getEndLocalDateTime());
+            return null;
+        });
+        agenda.selectedAppointments().addListener((ListChangeListener.Change<? extends Agenda.Appointment> c) -> {
+            if (!c.getList().isEmpty()) {
+                Context.getInstance().setSelectedActivity(activities_map.get(c.getList().get(0)));
+                FXMLLoader loader = new FXMLLoader(MainController.class.getResource("activity.fxml"));
+                try {
+                    if (split_pane.getItems().size() == 1) {
+                        split_pane.getItems().add(loader.load());
+                    } else {
+                        split_pane.getItems().set(1, loader.load());
+                    }
+                    split_pane.getDividers().get(0).positionProperty().bindBidirectional(divider_position);
+                } catch (IOException ex) {
+                    Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                if (split_pane.getItems().size() == 2) {
+                    split_pane.getItems().remove(1);
+                }
+            }
+        });
     }
 
     public void addUser() {
-        UserView user = new UserView(new UserEntity());
+        User user = new User(new UserEntity());
         Storage.getInstance().persist(user.getEntity());
         users.getItems().add(user);
         users.getSelectionModel().select(user);
