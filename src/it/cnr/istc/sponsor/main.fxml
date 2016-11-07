@@ -45,7 +45,7 @@
                 </MenuBar>
                 <ToolBar prefHeight="40.0" prefWidth="200.0">
                     <items>
-                        <Button mnemonicParsing="false">
+                        <Button mnemonicParsing="false" onAction="#solve">
                             <graphic>
                                 <Glyph fx:id="solveGlyph" fontFamily="FontAwesome" />
                             </graphic>
