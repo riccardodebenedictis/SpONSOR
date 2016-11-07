@@ -18,7 +18,9 @@ package it.cnr.istc.sponsor;
 
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Model;
 import com.microsoft.z3.Optimize;
+import com.microsoft.z3.Status;
 import it.cnr.istc.sponsor.db.ActivityEntity;
 import it.cnr.istc.sponsor.db.ProfileSchema;
 import it.cnr.istc.sponsor.db.Storage;
@@ -56,8 +58,10 @@ public class Context {
     public final ObservableList<User> users;
     public final ObservableList<Activity> activities;
     public final ObservableList<Schema> schemas;
+    public final ObjectProperty<Solution> solution = new SimpleObjectProperty<>();
     private final Map<Agenda.Appointment, Activity> app_act = new IdentityHashMap<>();
     private final Map<Activity, Agenda.Appointment> act_app = new IdentityHashMap<>();
+    private final Map<ActivityEntity, Activity> ent_act = new IdentityHashMap<>();
 
     private Context() {
         this.users = FXCollections.observableArrayList(Storage.getInstance().getAllUsers().stream().map(user -> new User(user)).collect(Collectors.toList()));
@@ -72,6 +76,7 @@ public class Context {
                     .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1"));
             app_act.put(app, activity);
             act_app.put(activity, app);
+            ent_act.put(activity.getEntity(), activity);
             schemas.addAll(activity.schemas.getValue());
         }
     }
@@ -133,11 +138,6 @@ public class Context {
     }
 
     public boolean solve() {
-        List<Schema> schemas = new ArrayList<>();
-        for (Activity activity : activities) {
-            schemas.addAll(activity.schemas.getValue());
-        }
-
         Map<User, Integer> user_id = new IdentityHashMap<>();
         for (int i = 0; i < users.size(); i++) {
             user_id.put(users.get(i), i);
@@ -225,17 +225,22 @@ public class Context {
 
         System.out.println(o);
 
-        switch (o.Check()) {
-            case UNSATISFIABLE:
-                System.out.println("Unsatisfable..");
-                return false;
-            case SATISFIABLE:
-                System.out.println("Solution found!");
-                System.out.println(o.getModel());
-                return true;
-            default:
-                throw new AssertionError(o.Check().name());
+        if (o.Check() == Status.SATISFIABLE) {
+            Model model = o.getModel();
+            Map<User, Collection<Schema>> us_assignments = new IdentityHashMap<>(users.size());
+            Map<Schema, User> su_ssignments = new IdentityHashMap<>(users.size());
+            for (int i = 0; i < vars.length; i++) {
+                us_assignments.put(users.get(i), new ArrayList<>());
+                for (int j = 0; j < vars[i].length; j++) {
+                    if (Integer.parseInt(model.evaluate(vars[i][j], true).toString()) == 1) {
+                        us_assignments.get(users.get(i)).add(schemas.get(j));
+                        su_ssignments.put(schemas.get(j), users.get(i));
+                    }
+                }
+            }
+            solution.setValue(new Solution(us_assignments, su_ssignments));
         }
+        return false;
     }
 
     public static Context getInstance() {
