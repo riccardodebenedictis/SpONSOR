@@ -139,6 +139,30 @@ public class UserEntity implements Serializable {
         this.c_objectivist = objectivist;
     }
 
+    public void addDenial(ProfileSchema denial) {
+        denials.add(denial);
+    }
+
+    public void removeDenial(ProfileSchema denial) {
+        denials.remove(denial);
+    }
+
+    public Collection<ProfileSchema> getDenials() {
+        return denials;
+    }
+
+    public void addProfileSchema(ProfileSchema request) {
+        requests.add(request);
+    }
+
+    public void removeProfileSchema(ProfileSchema request) {
+        requests.remove(request);
+    }
+
+    public Collection<ProfileSchema> getRequests() {
+        return requests;
+    }
+
     @Override
     public int hashCode() {
         int hash = 0;
