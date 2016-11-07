@@ -16,8 +16,6 @@
  */
 package it.cnr.istc.sponsor;
 
-import it.cnr.istc.sponsor.db.Storage;
-import it.cnr.istc.sponsor.db.UserEntity;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -172,17 +170,12 @@ public class MainController implements Initializable {
     }
 
     public void addUser() {
-        User user = new User(new UserEntity());
-        Storage.getInstance().persist(user.getEntity());
-        users.getItems().add(user);
+        User user = Context.getInstance().newUser();
         users.getSelectionModel().select(user);
     }
 
     public void removeSelectedUsers() {
-        users.getSelectionModel().getSelectedItems().forEach((user) -> {
-            Storage.getInstance().remove(user.getEntity());
-        });
-        users.getItems().removeAll(users.getSelectionModel().getSelectedItems());
+        Context.getInstance().removeUsers(users.getSelectionModel().getSelectedItems());
         users.getSelectionModel().selectFirst();
     }
 

@@ -20,7 +20,9 @@ import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.IntExpr;
 import com.microsoft.z3.Optimize;
 import it.cnr.istc.sponsor.db.ActivityEntity;
+import it.cnr.istc.sponsor.db.ProfileSchema;
 import it.cnr.istc.sponsor.db.Storage;
+import it.cnr.istc.sponsor.db.UserEntity;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -53,12 +55,14 @@ public class Context {
     public final ObjectProperty<Activity> selected_activity = new SimpleObjectProperty<>();
     public final ObservableList<User> users;
     public final ObservableList<Activity> activities;
+    public final ObservableList<Schema> schemas;
     private final Map<Agenda.Appointment, Activity> app_act = new IdentityHashMap<>();
     private final Map<Activity, Agenda.Appointment> act_app = new IdentityHashMap<>();
 
     private Context() {
         this.users = FXCollections.observableArrayList(Storage.getInstance().getAllUsers().stream().map(user -> new User(user)).collect(Collectors.toList()));
         this.activities = FXCollections.observableArrayList(Storage.getInstance().getAllActivities().stream().map(activity -> new Activity(activity)).collect(Collectors.toList()));
+        this.schemas = FXCollections.observableArrayList();
         for (Activity activity : activities) {
             Agenda.AppointmentImplLocal app = new Agenda.AppointmentImplLocal()
                     .withDescription(activity.name.getValue())
@@ -68,6 +72,7 @@ public class Context {
                     .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1"));
             app_act.put(app, activity);
             act_app.put(activity, app);
+            schemas.addAll(activity.schemas.getValue());
         }
     }
 
@@ -94,6 +99,37 @@ public class Context {
         act_app.put(activity, app);
 
         return app;
+    }
+
+    public User newUser() {
+        User user = new User(new UserEntity());
+        Storage.getInstance().persist(user.getEntity());
+        users.add(user);
+        return user;
+    }
+
+    public void removeUsers(Collection<User> us) {
+        us.forEach((user) -> {
+            Storage.getInstance().remove(user.getEntity());
+        });
+        users.removeAll(us);
+    }
+
+    public Schema newSchema() {
+        Activity activity = selected_activity.getValue();
+        Schema schema = new Schema(activity, new ProfileSchema());
+        schema.getEntity().setActivity(activity.getEntity());
+        Storage.getInstance().persist(schema.getEntity());
+        activity.schemas.getValue().add(schema);
+        schemas.add(schema);
+        return schema;
+    }
+
+    public void removeSchemas(Collection<Schema> ss) {
+        ss.forEach((schema) -> {
+            Storage.getInstance().remove(schema.getEntity());
+        });
+        schemas.removeAll(ss);
     }
 
     public boolean solve() {

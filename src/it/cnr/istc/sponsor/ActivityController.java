@@ -16,8 +16,6 @@
  */
 package it.cnr.istc.sponsor;
 
-import it.cnr.istc.sponsor.db.ProfileSchema;
-import it.cnr.istc.sponsor.db.Storage;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -123,18 +121,11 @@ public class ActivityController implements Initializable {
     }
 
     public void addSchema() {
-        Activity activity = Context.getInstance().selected_activity.getValue();
-        Schema schema = new Schema(activity, new ProfileSchema());
-        schema.getEntity().setActivity(activity.getEntity());
-        Storage.getInstance().persist(schema.getEntity());
-        activity.schemas.getValue().add(schema);
+        Context.getInstance().newSchema();
     }
 
     public void removeSchemas() {
-        schemas.getSelectionModel().getSelectedItems().forEach((user) -> {
-            Storage.getInstance().remove(user.getEntity());
-        });
-        schemas.getItems().removeAll(schemas.getSelectionModel().getSelectedItems());
+        Context.getInstance().removeSchemas(schemas.getSelectionModel().getSelectedItems());
         schemas.getSelectionModel().selectFirst();
     }
 }
