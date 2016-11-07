@@ -205,18 +205,18 @@ public class Context {
         Arrays.sort(c_pulses_array);
 
         List<Schema> overlapping_schemas = new ArrayList<>();
-        for (LocalDateTime c_pulses_array1 : c_pulses_array) {
-            if (starting_schemas.containsKey(c_pulses_array1)) {
-                overlapping_schemas.addAll(starting_schemas.get(c_pulses_array1));
+        for (LocalDateTime time : c_pulses_array) {
+            if (starting_schemas.containsKey(time)) {
+                overlapping_schemas.addAll(starting_schemas.get(time));
             }
-            if (ending_schemas.containsKey(c_pulses_array1)) {
-                overlapping_schemas.removeAll(ending_schemas.get(c_pulses_array1));
+            if (ending_schemas.containsKey(time)) {
+                overlapping_schemas.removeAll(ending_schemas.get(time));
             }
             if (overlapping_schemas.size() > 1) {
-                for (int i = 0; i < vars.length; i++) {
+                for (IntExpr[] var : vars) {
                     ArithExpr[] overlapping = new ArithExpr[overlapping_schemas.size()];
                     for (int j = 0; j < overlapping.length; j++) {
-                        overlapping[j] = vars[i][schema_id.get(overlapping_schemas.get(j))];
+                        overlapping[j] = var[schema_id.get(overlapping_schemas.get(j))];
                     }
                     o.Add(ctx.mkLe(ctx.mkAdd(overlapping), ctx.mkInt("1")));
                 }
