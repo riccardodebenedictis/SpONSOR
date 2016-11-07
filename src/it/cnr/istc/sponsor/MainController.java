@@ -55,6 +55,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.NumberStringConverter;
 import jfxtras.scene.control.agenda.Agenda;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.Glyph;
 
 /**
  * FXML Controller class
@@ -63,6 +65,12 @@ import jfxtras.scene.control.agenda.Agenda;
  */
 public class MainController implements Initializable {
 
+    @FXML
+    private Glyph solveGlyph;
+    @FXML
+    private Glyph addUserGlyph;
+    @FXML
+    private Glyph removeUsersGlyph;
     @FXML
     private Button addUser;
     @FXML
@@ -104,6 +112,10 @@ public class MainController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        solveGlyph.setIcon(FontAwesome.Glyph.GEARS);
+        addUserGlyph.setIcon(FontAwesome.Glyph.PLUS_CIRCLE);
+        removeUsersGlyph.setIcon(FontAwesome.Glyph.MINUS_CIRCLE);
+
         firstName.setCellValueFactory(cellData -> cellData.getValue().firstName);
         lastName.setCellValueFactory(cellData -> cellData.getValue().lastName);
         president.setCellValueFactory(cellData -> cellData.getValue().president);

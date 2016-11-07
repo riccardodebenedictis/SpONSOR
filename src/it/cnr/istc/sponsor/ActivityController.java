@@ -31,6 +31,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import jfxtras.scene.control.LocalDateTimeTextField;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.Glyph;
 
 /**
  * FXML Controller class
@@ -39,6 +41,10 @@ import jfxtras.scene.control.LocalDateTimeTextField;
  */
 public class ActivityController implements Initializable {
 
+    @FXML
+    private Glyph addSchemaGlyph;
+    @FXML
+    private Glyph removeSchemaGlyph;
     @FXML
     private TextField name;
     @FXML
@@ -76,6 +82,9 @@ public class ActivityController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        addSchemaGlyph.setIcon(FontAwesome.Glyph.PLUS_CIRCLE);
+        removeSchemaGlyph.setIcon(FontAwesome.Glyph.MINUS_CIRCLE);
+
         Activity activity = Context.getInstance().getSelectedActivity();
 
         name.textProperty().bindBidirectional(activity.name);

@@ -66,7 +66,7 @@
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
             <graphic>
-                <Glyph text="+">
+                <Glyph fx:id="addSchemaGlyph" fontFamily="FontAwesome">
                     <font>
                         <Font size="14.0" />
                     </font>
@@ -81,7 +81,7 @@
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
             <graphic>
-                <Glyph text="-">
+                <Glyph fx:id="removeSchemaGlyph" fontFamily="FontAwesome">
                     <font>
                         <Font size="14.0" />
                     </font>
