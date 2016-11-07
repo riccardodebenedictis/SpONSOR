@@ -16,30 +16,22 @@
  */
 package it.cnr.istc.sponsor;
 
-import com.microsoft.z3.ArithExpr;
-import com.microsoft.z3.IntExpr;
-import com.microsoft.z3.Model;
-import com.microsoft.z3.Optimize;
-import com.microsoft.z3.Status;
 import it.cnr.istc.sponsor.db.ActivityEntity;
 import it.cnr.istc.sponsor.db.ProfileSchema;
 import it.cnr.istc.sponsor.db.Storage;
 import it.cnr.istc.sponsor.db.UserEntity;
+import it.cnr.istc.sponsor.view.Activity;
+import it.cnr.istc.sponsor.view.Schema;
+import it.cnr.istc.sponsor.view.User;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.stage.Stage;
@@ -52,195 +44,125 @@ import jfxtras.scene.control.agenda.Agenda;
 public class Context {
 
     private static Context _instance;
-    public final ObjectProperty<Stage> stage = new SimpleObjectProperty<>();
-    public final ObjectProperty<Agenda> agenda = new SimpleObjectProperty<>();
+    public final ObjectProperty<Stage> primary_stage = new SimpleObjectProperty<>();
     public final ObjectProperty<Activity> selected_activity = new SimpleObjectProperty<>();
-    public final ObservableList<User> users;
-    public final ObservableList<Activity> activities;
-    public final ObservableList<Schema> schemas;
     public final ObjectProperty<Solution> solution = new SimpleObjectProperty<>();
-    private final Map<Agenda.Appointment, Activity> app_act = new IdentityHashMap<>();
-    private final Map<Activity, Agenda.Appointment> act_app = new IdentityHashMap<>();
-    private final Map<ActivityEntity, Activity> ent_act = new IdentityHashMap<>();
+    public final ObservableList<User> users = FXCollections.observableArrayList();
+    private final Map<User, UserEntity> user_entity = new IdentityHashMap<>();
+    private final Map<UserEntity, User> entity_user = new IdentityHashMap<>();
+    public final ObservableList<Activity> activities = FXCollections.observableArrayList();
+    private final Map<Activity, ActivityEntity> activity_entity = new IdentityHashMap<>();
+    private final Map<ActivityEntity, Activity> entity_activity = new IdentityHashMap<>();
+    private final Map<Activity, Agenda.Appointment> activity_appointment = new IdentityHashMap<>();
+    private final Map<Agenda.Appointment, Activity> appointment_activity = new IdentityHashMap<>();
+    public final ObservableList<Schema> schemas = FXCollections.observableArrayList();
+    private final Map<Schema, ProfileSchema> schema_entities = new IdentityHashMap<>();
+    private final Map<ProfileSchema, Schema> entity_schemas = new IdentityHashMap<>();
 
     private Context() {
-        this.users = FXCollections.observableArrayList(Storage.getInstance().getAllUsers().stream().map(user -> new User(user)).collect(Collectors.toList()));
-        this.activities = FXCollections.observableArrayList(Storage.getInstance().getAllActivities().stream().map(activity -> new Activity(activity)).collect(Collectors.toList()));
-        this.schemas = FXCollections.observableArrayList();
-        for (Activity activity : activities) {
-            Agenda.AppointmentImplLocal app = new Agenda.AppointmentImplLocal()
-                    .withDescription(activity.name.getValue())
-                    .withSummary(activity.name.getValue())
+        Collection<UserEntity> c_users = Storage.getInstance().getAllUsers();
+        Collection<ActivityEntity> c_activities = Storage.getInstance().getAllActivities();
+        for (UserEntity entity : c_users) {
+            User user = newUser(entity);
+            users.add(user);
+            user_entity.put(user, entity);
+            entity_user.put(entity, user);
+        }
+        for (ActivityEntity c_activity : c_activities) {
+            Activity activity = newActivity(c_activity);
+            activities.add(activity);
+            activity_entity.put(activity, c_activity);
+            entity_activity.put(c_activity, activity);
+
+            Agenda.Appointment app = new Agenda.AppointmentImplLocal()
                     .withStartLocalDateTime(activity.start.getValue())
                     .withEndLocalDateTime(activity.end.getValue())
                     .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1"));
-            app_act.put(app, activity);
-            act_app.put(activity, app);
-            ent_act.put(activity.getEntity(), activity);
-            schemas.addAll(activity.schemas.getValue());
+            activity_appointment.put(activity, app);
+            appointment_activity.put(app, activity);
+
+            for (ProfileSchema schema_entity : c_activity.getSchemas()) {
+                Schema schema = newSchema(activity, schema_entity);
+                activity.schemas.add(schema);
+                schemas.add(schema);
+                schema_entities.put(schema, schema_entity);
+                entity_schemas.put(schema_entity, schema);
+            }
+        }
+
+        for (UserEntity user : c_users) {
+            for (ProfileSchema denial : user.getDenials()) {
+                entity_user.get(user).denials.add(entity_schemas.get(denial));
+                entity_schemas.get(denial).denials.add(entity_user.get(user));
+            }
+            for (ProfileSchema denial : user.getRequests()) {
+                entity_user.get(user).requests.add(entity_schemas.get(denial));
+                entity_schemas.get(denial).requests.add(entity_user.get(user));
+            }
         }
     }
 
-    public Activity getActivity(Agenda.Appointment appointment) {
-        return app_act.get(appointment);
-    }
-
     public Agenda.Appointment getAppointment(Activity activity) {
-        return act_app.get(activity);
+        return activity_appointment.get(activity);
     }
 
     public Agenda.Appointment newAppointment(Agenda.LocalDateTimeRange range) {
-        Agenda.Appointment app = new Agenda.AppointmentImplLocal()
-                .withStartLocalDateTime(range.getStartLocalDateTime())
-                .withEndLocalDateTime(range.getEndLocalDateTime())
-                .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1"));
         ActivityEntity entity = new ActivityEntity();
         entity.setStartTime(Date.from(range.getStartLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
         entity.setEndTime(Date.from(range.getEndLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
         Storage.getInstance().persist(entity);
-        Activity activity = new Activity(entity);
 
-        app_act.put(app, activity);
-        act_app.put(activity, app);
+        Activity activity = new Activity();
+
+        activities.add(activity);
+
+        activity_entity.put(activity, entity);
+        entity_activity.put(entity, activity);
+
+        Agenda.Appointment app = new Agenda.AppointmentImplLocal()
+                .withStartLocalDateTime(range.getStartLocalDateTime())
+                .withEndLocalDateTime(range.getEndLocalDateTime())
+                .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1"));
+
+        activity_appointment.put(activity, app);
+        appointment_activity.put(app, activity);
 
         return app;
     }
 
     public User newUser() {
-        User user = new User(new UserEntity());
-        Storage.getInstance().persist(user.getEntity());
+        UserEntity entity = new UserEntity();
+        Storage.getInstance().persist(entity);
+        User user = newUser(entity);
         users.add(user);
         return user;
     }
 
     public void removeUsers(Collection<User> us) {
-        us.forEach((user) -> {
-            Storage.getInstance().remove(user.getEntity());
-        });
+        us.forEach(user -> Storage.getInstance().remove(user_entity.get(user)));
         users.removeAll(us);
     }
 
     public Schema newSchema() {
         Activity activity = selected_activity.getValue();
-        Schema schema = new Schema(activity, new ProfileSchema());
-        schema.getEntity().setActivity(activity.getEntity());
-        Storage.getInstance().persist(schema.getEntity());
-        activity.schemas.getValue().add(schema);
+        ProfileSchema entity = new ProfileSchema();
+        entity.setActivity(activity_entity.get(activity));
+        Storage.getInstance().persist(entity);
+        activity_entity.get(activity).addProfileSchema(entity);
+        Storage.getInstance().merge(activity_entity.get(activity));
+        Schema schema = newSchema(activity, entity);
+        activity.schemas.add(schema);
         schemas.add(schema);
         return schema;
     }
 
     public void removeSchemas(Collection<Schema> ss) {
-        ss.forEach((schema) -> {
-            Storage.getInstance().remove(schema.getEntity());
-        });
+        ss.forEach(schema -> Storage.getInstance().remove(schema_entities.get(schema)));
         schemas.removeAll(ss);
     }
 
-    public boolean solve() {
-        Map<User, Integer> user_id = new IdentityHashMap<>();
-        for (int i = 0; i < users.size(); i++) {
-            user_id.put(users.get(i), i);
-        }
-        Map<Schema, Integer> schema_id = new IdentityHashMap<>();
-        for (int i = 0; i < schemas.size(); i++) {
-            schema_id.put(schemas.get(i), i);
-        }
-
-        HashMap<String, String> cfg = new HashMap<>();
-        cfg.put("model", "true");
-        com.microsoft.z3.Context ctx = new com.microsoft.z3.Context(cfg);
-        Optimize o = ctx.mkOptimize();
-
-        // the 0-1 variables..
-        IntExpr[][] vars = new IntExpr[users.size()][schemas.size()];
-
-        // the objective function..
-        ArithExpr[] objective = new ArithExpr[users.size() * schemas.size()];
-
-        int expr_id = 0;
-        for (int i = 0; i < vars.length; i++) {
-            for (int j = 0; j < vars[i].length; j++) {
-                vars[i][j] = ctx.mkIntConst("x_" + i + "_" + j);
-                o.Add(ctx.mkGe(vars[i][j], ctx.mkInt("0")), ctx.mkLe(vars[i][j], ctx.mkInt("1")));
-                objective[expr_id++] = ctx.mkMul(vars[i][j], ctx.mkReal(Double.toString(match_rate(users.get(i), schemas.get(j)))));
-            }
-        }
-
-        o.MkMaximize(ctx.mkAdd(objective));
-
-        // any users should do something..
-        for (IntExpr[] var : vars) {
-            o.Add(ctx.mkGe(ctx.mkAdd(var), ctx.mkInt("1")));
-        }
-
-        // every schema should be done by someone..
-        for (int j = 0; j < schemas.size(); j++) {
-            ArithExpr[] schema = new ArithExpr[vars.length];
-            for (int i = 0; i < vars.length; i++) {
-                schema[i] = vars[i][j];
-            }
-            o.Add(ctx.mkEq(ctx.mkAdd(schema), ctx.mkInt("1")));
-        }
-
-        // overlapping schemas cannot be done by the same person..
-        Map<LocalDateTime, Collection<Schema>> starting_schemas = new HashMap<>();
-        Map<LocalDateTime, Collection<Schema>> ending_schemas = new HashMap<>();
-        Set<LocalDateTime> pulses = new HashSet<>();
-        for (Activity activity : activities) {
-            if (!starting_schemas.containsKey(activity.start.getValue())) {
-                starting_schemas.put(activity.start.getValue(), new ArrayList<>());
-            }
-            if (!ending_schemas.containsKey(activity.end.getValue())) {
-                ending_schemas.put(activity.end.getValue(), new ArrayList<>());
-            }
-            starting_schemas.get(activity.start.getValue()).addAll(activity.schemas.getValue());
-            ending_schemas.get(activity.end.getValue()).addAll(activity.schemas.getValue());
-            pulses.add(activity.start.getValue());
-            pulses.add(activity.end.getValue());
-        }
-
-        // Sort current pulses
-        LocalDateTime[] c_pulses_array = pulses.toArray(new LocalDateTime[pulses.size()]);
-        Arrays.sort(c_pulses_array);
-
-        List<Schema> overlapping_schemas = new ArrayList<>();
-        for (LocalDateTime time : c_pulses_array) {
-            if (starting_schemas.containsKey(time)) {
-                overlapping_schemas.addAll(starting_schemas.get(time));
-            }
-            if (ending_schemas.containsKey(time)) {
-                overlapping_schemas.removeAll(ending_schemas.get(time));
-            }
-            if (overlapping_schemas.size() > 1) {
-                for (IntExpr[] var : vars) {
-                    ArithExpr[] overlapping = new ArithExpr[overlapping_schemas.size()];
-                    for (int j = 0; j < overlapping.length; j++) {
-                        overlapping[j] = var[schema_id.get(overlapping_schemas.get(j))];
-                    }
-                    o.Add(ctx.mkLe(ctx.mkAdd(overlapping), ctx.mkInt("1")));
-                }
-            }
-        }
-
-        System.out.println(o);
-
-        if (o.Check() == Status.SATISFIABLE) {
-            Model model = o.getModel();
-            Map<User, Collection<Schema>> us_assignments = new IdentityHashMap<>(users.size());
-            Map<Schema, User> su_ssignments = new IdentityHashMap<>(users.size());
-            for (int i = 0; i < vars.length; i++) {
-                us_assignments.put(users.get(i), new ArrayList<>());
-                for (int j = 0; j < vars[i].length; j++) {
-                    if (Integer.parseInt(model.evaluate(vars[i][j], true).toString()) == 1) {
-                        us_assignments.get(users.get(i)).add(schemas.get(j));
-                        su_ssignments.put(schemas.get(j), users.get(i));
-                    }
-                }
-            }
-            solution.setValue(new Solution(us_assignments, su_ssignments));
-        }
-        return false;
+    public Activity getActivity(Agenda.Appointment app) {
+        return appointment_activity.get(app);
     }
 
     public static Context getInstance() {
@@ -250,32 +172,123 @@ public class Context {
         return _instance;
     }
 
-    private static double match_rate(User user, Schema schema) {
-        double mr = 0;
-        if (schema.president.getValue()) {
-            mr += user.president.getValue();
-        }
-        if (schema.structure.getValue()) {
-            mr += user.structure.getValue();
-        }
-        if (schema.brilliant.getValue()) {
-            mr += user.brilliant.getValue();
-        }
-        if (schema.evaluator.getValue()) {
-            mr += user.evaluator.getValue();
-        }
-        if (schema.concrete.getValue()) {
-            mr += user.concrete.getValue();
-        }
-        if (schema.explorer.getValue()) {
-            mr += user.explorer.getValue();
-        }
-        if (schema.worker.getValue()) {
-            mr += user.worker.getValue();
-        }
-        if (schema.objectivist.getValue()) {
-            mr += user.objectivist.getValue();
-        }
-        return mr;
+    private static User newUser(UserEntity entity) {
+        User user = new User();
+        user.firstName.setValue(entity.getFirstName());
+        user.firstName.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            entity.setFirstName(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        user.lastName.setValue(entity.getLastName());
+        user.lastName.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            entity.setLastName(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        user.president.setValue(entity.getPresident());
+        user.president.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setPresident(newValue.intValue());
+            Storage.getInstance().merge(entity);
+        });
+        user.structure.setValue(entity.getStructure());
+        user.structure.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setStructure(newValue.intValue());
+            Storage.getInstance().merge(entity);
+        });
+        user.brilliant.setValue(entity.getBrilliant());
+        user.brilliant.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setBrilliant(newValue.intValue());
+            Storage.getInstance().merge(entity);
+        });
+        user.evaluator.setValue(entity.getEvaluator());
+        user.evaluator.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setEvaluator(newValue.intValue());
+            Storage.getInstance().merge(entity);
+        });
+        user.concrete.setValue(entity.getConcrete());
+        user.concrete.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setConcrete(newValue.intValue());
+            Storage.getInstance().merge(entity);
+        });
+        user.explorer.setValue(entity.getExplorer());
+        user.explorer.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setExplorer(newValue.intValue());
+            Storage.getInstance().merge(entity);
+        });
+        user.worker.setValue(entity.getWorker());
+        user.worker.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setWorker(newValue.intValue());
+            Storage.getInstance().merge(entity);
+        });
+        user.objectivist.setValue(entity.getObjectivist());
+        user.objectivist.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            entity.setObjectivist(newValue.intValue());
+            Storage.getInstance().merge(entity);
+        });
+        return user;
+    }
+
+    private static Activity newActivity(ActivityEntity entity) {
+        Activity activity = new Activity();
+        activity.name.setValue(entity.getName());
+        activity.name.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            entity.setName(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        activity.start.setValue(LocalDateTime.ofInstant(entity.getStartTime().toInstant(), ZoneId.systemDefault()));
+        activity.start.addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
+            entity.setStartTime(Date.from(newValue.atZone(ZoneId.systemDefault()).toInstant()));
+            Storage.getInstance().merge(entity);
+        });
+        activity.end.setValue(LocalDateTime.ofInstant(entity.getEndTime().toInstant(), ZoneId.systemDefault()));
+        activity.end.addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
+            entity.setEndTime(Date.from(newValue.atZone(ZoneId.systemDefault()).toInstant()));
+            Storage.getInstance().merge(entity);
+        });
+        return activity;
+    }
+
+    private static Schema newSchema(Activity activity, ProfileSchema entity) {
+        Schema schema = new Schema(activity);
+        schema.president.setValue(entity.isPresident());
+        schema.president.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            entity.setPresident(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        schema.structure.setValue(entity.isStructure());
+        schema.structure.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            entity.setStructure(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        schema.brilliant.setValue(entity.isBrilliant());
+        schema.brilliant.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            entity.setBrilliant(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        schema.evaluator.setValue(entity.isEvaluator());
+        schema.evaluator.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            entity.setEvaluator(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        schema.concrete.setValue(entity.isConcrete());
+        schema.concrete.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            entity.setConcrete(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        schema.explorer.setValue(entity.isExplorer());
+        schema.explorer.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            entity.setExplorer(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        schema.worker.setValue(entity.isWorker());
+        schema.worker.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            entity.setWorker(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        schema.objectivist.setValue(entity.isObjectivist());
+        schema.objectivist.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            entity.setObjectivist(newValue);
+            Storage.getInstance().merge(entity);
+        });
+        return schema;
     }
 }

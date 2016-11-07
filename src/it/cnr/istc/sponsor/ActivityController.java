@@ -16,6 +16,8 @@
  */
 package it.cnr.istc.sponsor;
 
+import it.cnr.istc.sponsor.view.Activity;
+import it.cnr.istc.sponsor.view.Schema;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -114,7 +116,7 @@ public class ActivityController implements Initializable {
         worker.setOnEditCommit(cellData -> cellData.getRowValue().worker.setValue(cellData.getNewValue()));
         objectivist.setOnEditCommit(cellData -> cellData.getRowValue().objectivist.setValue(cellData.getNewValue()));
 
-        schemas.itemsProperty().bindBidirectional(activity.schemas);
+        schemas.setItems(activity.schemas);
         removeSchemas.disableProperty().bind(schemas.getSelectionModel().selectedItemProperty().isNull());
 
         schemas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);

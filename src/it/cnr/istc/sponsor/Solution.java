@@ -16,6 +16,8 @@
  */
 package it.cnr.istc.sponsor;
 
+import it.cnr.istc.sponsor.view.Schema;
+import it.cnr.istc.sponsor.view.User;
 import java.util.Collection;
 import java.util.Map;
 

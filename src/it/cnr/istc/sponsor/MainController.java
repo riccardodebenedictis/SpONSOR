@@ -16,6 +16,9 @@
  */
 package it.cnr.istc.sponsor;
 
+import it.cnr.istc.sponsor.view.Activity;
+import it.cnr.istc.sponsor.view.Schema;
+import it.cnr.istc.sponsor.view.User;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -166,7 +169,11 @@ public class MainController implements Initializable {
             }
         });
 
-        Context.getInstance().agenda.setValue(agenda);
+        Context.getInstance().schemas.addListener((ListChangeListener.Change<? extends Schema> c) -> {
+            while (c.next()) {
+                agenda.refresh();
+            }
+        });
     }
 
     public void addUser() {
@@ -180,6 +187,6 @@ public class MainController implements Initializable {
     }
 
     public void solve() {
-        Context.getInstance().solve();
+        Context.getInstance().solution.setValue(new Problem().solve());
     }
 }

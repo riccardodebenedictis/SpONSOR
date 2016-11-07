@@ -14,11 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.cnr.istc.sponsor.view;
+package it.cnr.istc.sponsor;
 
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Model;
 import com.microsoft.z3.Optimize;
+import com.microsoft.z3.Status;
+import it.cnr.istc.sponsor.view.Schema;
+import it.cnr.istc.sponsor.view.User;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,24 +58,28 @@ public class Problem {
         for (Schema schema : Context.getInstance().schemas) {
             schema_assignments.put(schema, new IdentityHashMap<>());
         }
-        int i = 0, j = 0;
+
+        this.objective = new ArithExpr[Context.getInstance().users.size() * Context.getInstance().schemas.size()];
+
+        int user_id = 0, schema_id = 0, i = 0;
         for (User user : Context.getInstance().users) {
-            j = 0;
+            schema_id = 0;
             for (Schema schema : Context.getInstance().schemas) {
-                IntExpr var = ctx.mkIntConst("x_" + i++ + "_" + j++);
+                IntExpr var = ctx.mkIntConst("x_" + user_id++ + "_" + schema_id++);
                 o.Add(ctx.mkGe(var, ctx.mkInt("0")), ctx.mkLe(var, ctx.mkInt("1")));
                 user_assignments.get(user).put(schema, var);
                 schema_assignments.get(schema).put(user, var);
+                objective[i++] = ctx.mkMul(var, ctx.mkReal(Double.toString(match_rate(user, schema))));
             }
         }
-        this.objective = new ArithExpr[Context.getInstance().users.size() * Context.getInstance().schemas.size()];
+        o.MkMaximize(ctx.mkAdd(objective));
 
         // any users should do something..
         for (User user : Context.getInstance().users) {
             ArithExpr[] cst = new ArithExpr[Context.getInstance().schemas.size()];
-            j = 0;
+            schema_id = 0;
             for (Schema schema : Context.getInstance().schemas) {
-                cst[j++] = user_assignments.get(user).get(schema);
+                cst[schema_id++] = user_assignments.get(user).get(schema);
             }
             o.Add(ctx.mkGe(ctx.mkAdd(cst), ctx.mkInt("1")));
         }
@@ -79,9 +87,9 @@ public class Problem {
         // every schema should be done by someone..
         for (Schema schema : Context.getInstance().schemas) {
             ArithExpr[] cst = new ArithExpr[Context.getInstance().users.size()];
-            j = 0;
+            schema_id = 0;
             for (User user : Context.getInstance().users) {
-                cst[j++] = user_assignments.get(user).get(schema);
+                cst[schema_id++] = user_assignments.get(user).get(schema);
             }
             o.Add(ctx.mkEq(ctx.mkAdd(cst), ctx.mkInt("1")));
         }
@@ -118,8 +126,9 @@ public class Problem {
             if (overlapping_schemas.size() > 1) {
                 for (User user : Context.getInstance().users) {
                     ArithExpr[] cst = new ArithExpr[overlapping_schemas.size()];
+                    schema_id = 0;
                     for (Schema schema : overlapping_schemas) {
-                        cst[j++] = user_assignments.get(user).get(schema);
+                        cst[schema_id++] = user_assignments.get(user).get(schema);
                     }
                     o.Add(ctx.mkLe(ctx.mkAdd(cst), ctx.mkInt("1")));
                 }
@@ -135,5 +144,54 @@ public class Problem {
                 o.Add(ctx.mkEq(user_assignments.get(user).get(schema), ctx.mkInt("1")));
             }
         }
+    }
+
+    public Solution solve() {
+        if (o.Check() == Status.SATISFIABLE) {
+            Map<User, Collection<Schema>> user_schemas = new IdentityHashMap<>();
+            Map<Schema, User> assignments = new IdentityHashMap<>();
+            Model model = o.getModel();
+            for (Map.Entry<User, Map<Schema, IntExpr>> user_entry : user_assignments.entrySet()) {
+                user_schemas.put(user_entry.getKey(), new ArrayList<>());
+                for (Map.Entry<Schema, IntExpr> schema_entry : user_entry.getValue().entrySet()) {
+                    if (model.evaluate(schema_entry.getValue(), true).toString().equals("1")) {
+                        user_schemas.get(user_entry.getKey()).add(schema_entry.getKey());
+                        assignments.put(schema_entry.getKey(), user_entry.getKey());
+                    }
+                }
+            }
+            return new Solution(user_schemas, assignments);
+        } else {
+            return null;
+        }
+    }
+
+    private static double match_rate(User user, Schema schema) {
+        double mr = 0;
+        if (schema.president.getValue()) {
+            mr += user.president.getValue();
+        }
+        if (schema.structure.getValue()) {
+            mr += user.structure.getValue();
+        }
+        if (schema.brilliant.getValue()) {
+            mr += user.brilliant.getValue();
+        }
+        if (schema.evaluator.getValue()) {
+            mr += user.evaluator.getValue();
+        }
+        if (schema.concrete.getValue()) {
+            mr += user.concrete.getValue();
+        }
+        if (schema.explorer.getValue()) {
+            mr += user.explorer.getValue();
+        }
+        if (schema.worker.getValue()) {
+            mr += user.worker.getValue();
+        }
+        if (schema.objectivist.getValue()) {
+            mr += user.objectivist.getValue();
+        }
+        return mr;
     }
 }

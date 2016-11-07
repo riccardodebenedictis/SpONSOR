@@ -32,7 +32,7 @@ public class SpONSOR extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        Context.getInstance().stage.setValue(primaryStage);
+        Context.getInstance().primary_stage.setValue(primaryStage);
         FXMLLoader loader = new FXMLLoader(SpONSOR.class.getResource("main.fxml"));
         try {
             primaryStage.setScene(new Scene(loader.load()));
