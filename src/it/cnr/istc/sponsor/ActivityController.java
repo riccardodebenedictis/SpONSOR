@@ -85,7 +85,7 @@ public class ActivityController implements Initializable {
         addSchemaGlyph.setIcon(FontAwesome.Glyph.PLUS_CIRCLE);
         removeSchemaGlyph.setIcon(FontAwesome.Glyph.MINUS_CIRCLE);
 
-        Activity activity = Context.getInstance().getSelectedActivity();
+        Activity activity = Context.getInstance().selected_activity.getValue();
 
         name.textProperty().bindBidirectional(activity.name);
         start.localDateTimeProperty().bindBidirectional(activity.start);
@@ -94,15 +94,15 @@ public class ActivityController implements Initializable {
         name.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             activity.getAppointment().setDescription(newValue);
             activity.getAppointment().setSummary(newValue);
-            Context.getInstance().getAgenda().refresh();
+            Context.getInstance().agenda.getValue().refresh();
         });
         start.localDateTimeProperty().addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
             activity.getAppointment().setStartLocalDateTime(newValue);
-            Context.getInstance().getAgenda().refresh();
+            Context.getInstance().agenda.getValue().refresh();
         });
         end.localDateTimeProperty().addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
             activity.getAppointment().setEndLocalDateTime(newValue);
-            Context.getInstance().getAgenda().refresh();
+            Context.getInstance().agenda.getValue().refresh();
         });
 
         president.setCellFactory(CheckBoxTableCell.forTableColumn(president));
@@ -139,7 +139,7 @@ public class ActivityController implements Initializable {
     }
 
     public void addSchema() {
-        Activity activity = Context.getInstance().getSelectedActivity();
+        Activity activity = Context.getInstance().selected_activity.getValue();
         Schema schema = new Schema(activity, new ProfileSchema());
         schema.getEntity().setActivity(activity.getEntity());
         Storage.getInstance().persist(schema.getEntity());

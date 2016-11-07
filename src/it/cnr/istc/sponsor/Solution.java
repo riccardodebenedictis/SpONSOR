@@ -16,30 +16,9 @@
  */
 package it.cnr.istc.sponsor;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.stage.Stage;
-import jfxtras.scene.control.agenda.Agenda;
-
 /**
  *
  * @author Riccardo De Benedictis <riccardo.debenedictis@istc.cnr.it>
  */
-public class Context {
-
-    private static Context _instance;
-    public final ObjectProperty<Stage> stage = new SimpleObjectProperty<>();
-    public final ObjectProperty<Agenda> agenda = new SimpleObjectProperty<>();
-    public final ObjectProperty<Activity> selected_activity = new SimpleObjectProperty<>();
-    public final ObjectProperty<Solution> solution = new SimpleObjectProperty<>();
-
-    private Context() {
-    }
-
-    public static Context getInstance() {
-        if (_instance == null) {
-            _instance = new Context();
-        }
-        return _instance;
-    }
+public class Solution {
 }

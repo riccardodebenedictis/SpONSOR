@@ -185,7 +185,7 @@ public class MainController implements Initializable {
         });
         agenda.selectedAppointments().addListener((ListChangeListener.Change<? extends Agenda.Appointment> c) -> {
             if (!c.getList().isEmpty()) {
-                Context.getInstance().setSelectedActivity(activities_map.get(c.getList().get(0)));
+                Context.getInstance().selected_activity.setValue(activities_map.get(c.getList().get(0)));
                 FXMLLoader loader = new FXMLLoader(MainController.class.getResource("activity.fxml"));
                 try {
                     if (split_pane.getItems().size() == 1) {
@@ -204,7 +204,7 @@ public class MainController implements Initializable {
             }
         });
 
-        Context.getInstance().setAgenda(agenda);
+        Context.getInstance().agenda.setValue(agenda);
     }
 
     public void addUser() {
