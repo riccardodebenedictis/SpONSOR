@@ -19,9 +19,7 @@ package it.cnr.istc.sponsor;
 import it.cnr.istc.sponsor.db.ProfileSchema;
 import it.cnr.istc.sponsor.db.Storage;
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.ResourceBundle;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -90,20 +88,6 @@ public class ActivityController implements Initializable {
         name.textProperty().bindBidirectional(activity.name);
         start.localDateTimeProperty().bindBidirectional(activity.start);
         end.localDateTimeProperty().bindBidirectional(activity.end);
-
-        name.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            activity.getAppointment().setDescription(newValue);
-            activity.getAppointment().setSummary(newValue);
-            Context.getInstance().agenda.getValue().refresh();
-        });
-        start.localDateTimeProperty().addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
-            activity.getAppointment().setStartLocalDateTime(newValue);
-            Context.getInstance().agenda.getValue().refresh();
-        });
-        end.localDateTimeProperty().addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
-            activity.getAppointment().setEndLocalDateTime(newValue);
-            Context.getInstance().agenda.getValue().refresh();
-        });
 
         president.setCellFactory(CheckBoxTableCell.forTableColumn(president));
         structure.setCellFactory(CheckBoxTableCell.forTableColumn(structure));

@@ -17,10 +17,13 @@
 package it.cnr.istc.sponsor.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
 /**
@@ -44,6 +47,10 @@ public class ProfileSchema implements Serializable {
     private boolean c_explorer;
     private boolean c_worker;
     private boolean c_objectivist;
+    @ManyToMany(mappedBy = "denials")
+    private final Collection<UserEntity> denials = new ArrayList<>();
+    @ManyToMany(mappedBy = "requests")
+    private final Collection<UserEntity> requests = new ArrayList<>();
 
     public Long getId() {
         return id;

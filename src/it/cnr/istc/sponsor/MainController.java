@@ -16,31 +16,13 @@
  */
 package it.cnr.istc.sponsor;
 
-import com.microsoft.z3.ArithExpr;
-import com.microsoft.z3.IntExpr;
-import com.microsoft.z3.Optimize;
-import it.cnr.istc.sponsor.db.ActivityEntity;
 import it.cnr.istc.sponsor.db.Storage;
 import it.cnr.istc.sponsor.db.UserEntity;
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ListChangeListener;
@@ -102,7 +84,6 @@ public class MainController implements Initializable {
     @FXML
     private SplitPane split_pane;
     private final DoubleProperty divider_position = new SimpleDoubleProperty(0.7);
-    private final Map<Agenda.Appointment, Activity> activities_map = new IdentityHashMap<>();
 
     /**
      * Initializes the controller class.
@@ -149,43 +130,26 @@ public class MainController implements Initializable {
         worker.setOnEditCommit(cellData -> cellData.getRowValue().worker.setValue(cellData.getNewValue()));
         objectivist.setOnEditCommit(cellData -> cellData.getRowValue().objectivist.setValue(cellData.getNewValue()));
 
-        users.getItems().addAll(Storage.getInstance().getAllUsers().stream().map(user -> new User(user)).collect(Collectors.toList()));
+        users.itemsProperty().setValue(Context.getInstance().users);
         removeUsers.disableProperty().bind(users.getSelectionModel().selectedItemProperty().isNull());
 
         users.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        Storage.getInstance().getAllActivities().forEach((entity) -> {
-            Activity activity = new Activity(new Agenda.AppointmentImplLocal()
-                    .withDescription(entity.getName())
-                    .withSummary(entity.getName())
-                    .withStartLocalDateTime(LocalDateTime.ofInstant(entity.getStartTime().toInstant(), ZoneId.systemDefault()))
-                    .withEndLocalDateTime(LocalDateTime.ofInstant(entity.getEndTime().toInstant(), ZoneId.systemDefault()))
-                    .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1")), entity);
-            activities_map.put(activity.getAppointment(), activity);
-            agenda.appointments().add(activity.getAppointment());
-        });
+        for (Activity activity : Context.getInstance().activities) {
+            agenda.appointments().add(Context.getInstance().getAppointment(activity));
+        }
 
-        agenda.setNewAppointmentCallback((Agenda.LocalDateTimeRange param) -> {
-            Agenda.Appointment appointment = new Agenda.AppointmentImplLocal()
-                    .withStartLocalDateTime(param.getStartLocalDateTime())
-                    .withEndLocalDateTime(param.getEndLocalDateTime())
-                    .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1"));
-            ActivityEntity entity = new ActivityEntity();
-            entity.setStartTime(Date.from(param.getStartLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
-            entity.setEndTime(Date.from(param.getEndLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
-            Storage.getInstance().persist(entity);
-            activities_map.put(appointment, new Activity(appointment, entity));
-            return appointment;
-        });
-        agenda.setAppointmentChangedCallback((Agenda.Appointment param) -> {
-            Activity view = activities_map.get(param);
-            view.start.setValue(param.getStartLocalDateTime());
-            view.end.setValue(param.getEndLocalDateTime());
+        agenda.setNewAppointmentCallback(range -> Context.getInstance().newAppointment(range));
+        agenda.setAppointmentChangedCallback((Agenda.Appointment app) -> {
+            Activity activity = Context.getInstance().getActivity(app);
+            activity.start.setValue(app.getStartLocalDateTime());
+            activity.end.setValue(app.getEndLocalDateTime());
             return null;
         });
+
         agenda.selectedAppointments().addListener((ListChangeListener.Change<? extends Agenda.Appointment> c) -> {
             if (!c.getList().isEmpty()) {
-                Context.getInstance().selected_activity.setValue(activities_map.get(c.getList().get(0)));
+                Context.getInstance().selected_activity.setValue(Context.getInstance().getActivity(c.getList().get(0)));
                 FXMLLoader loader = new FXMLLoader(MainController.class.getResource("activity.fxml"));
                 try {
                     if (split_pane.getItems().size() == 1) {
@@ -223,139 +187,6 @@ public class MainController implements Initializable {
     }
 
     public void solve() {
-        List<User> all_users = new ArrayList<>(users.getItems());
-        Collections.sort(all_users, (User u1, User u2) -> {
-            String u1_val = u1.lastName.getValue() + " " + u1.firstName.getValue();
-            String u2_val = u2.lastName.getValue() + " " + u2.firstName.getValue();
-            return u1_val.compareTo(u2_val);
-        });
-        List<Schema> all_schemas = new ArrayList<>();
-        for (Activity activity : activities_map.values()) {
-            all_schemas.addAll(activity.schemas.getValue());
-        }
-        Collections.sort(all_schemas, (Schema s1, Schema s2) -> s1.getActivity().start.getValue().compareTo(s2.getActivity().start.getValue()));
-        Map<Schema, Integer> schema_id = new IdentityHashMap<>();
-        for (int i = 0; i < all_schemas.size(); i++) {
-            schema_id.put(all_schemas.get(i), i);
-        }
-
-        HashMap<String, String> cfg = new HashMap<>();
-        cfg.put("model", "true");
-        com.microsoft.z3.Context ctx = new com.microsoft.z3.Context(cfg);
-        Optimize o = ctx.mkOptimize();
-
-        // the 0-1 variables..
-        IntExpr[][] vars = new IntExpr[all_users.size()][all_schemas.size()];
-
-        // the objective function..
-        ArithExpr[] objective = new ArithExpr[all_users.size() * all_schemas.size()];
-
-        int expr_id = 0;
-        for (int i = 0; i < vars.length; i++) {
-            for (int j = 0; j < vars[i].length; j++) {
-                vars[i][j] = ctx.mkIntConst("x_" + i + "_" + j);
-                o.Add(ctx.mkGe(vars[i][j], ctx.mkInt("0")), ctx.mkLe(vars[i][j], ctx.mkInt("1")));
-                objective[expr_id++] = ctx.mkMul(vars[i][j], ctx.mkReal(Double.toString(match_rate(all_users.get(i), all_schemas.get(j)))));
-            }
-        }
-
-        o.MkMaximize(ctx.mkAdd(objective));
-
-        // any users should do something..
-        for (int i = 0; i < vars.length; i++) {
-            o.Add(ctx.mkGe(ctx.mkAdd(vars[i]), ctx.mkInt("1")));
-        }
-
-        // every schema should be done by someone..
-        for (int j = 0; j < all_schemas.size(); j++) {
-            ArithExpr[] schema = new ArithExpr[vars.length];
-            for (int i = 0; i < vars.length; i++) {
-                schema[i] = vars[i][j];
-            }
-            o.Add(ctx.mkEq(ctx.mkAdd(schema), ctx.mkInt("1")));
-        }
-
-        // overlapping schemas cannot be done by the same person..
-        Map<LocalDateTime, Collection<Schema>> starting_schemas = new HashMap<>();
-        Map<LocalDateTime, Collection<Schema>> ending_schemas = new HashMap<>();
-        Set<LocalDateTime> pulses = new HashSet<>();
-        for (Activity activity : activities_map.values()) {
-            if (!starting_schemas.containsKey(activity.start.getValue())) {
-                starting_schemas.put(activity.start.getValue(), new ArrayList<>());
-            }
-            if (!ending_schemas.containsKey(activity.end.getValue())) {
-                ending_schemas.put(activity.end.getValue(), new ArrayList<>());
-            }
-            starting_schemas.get(activity.start.getValue()).addAll(activity.schemas.getValue());
-            ending_schemas.get(activity.end.getValue()).addAll(activity.schemas.getValue());
-            pulses.add(activity.start.getValue());
-            pulses.add(activity.end.getValue());
-        }
-
-        // Sort current pulses
-        LocalDateTime[] c_pulses_array = pulses.toArray(new LocalDateTime[pulses.size()]);
-        Arrays.sort(c_pulses_array);
-
-        List<Schema> overlapping_schemas = new ArrayList<>();
-        for (int p = 0; p < c_pulses_array.length; p++) {
-            if (starting_schemas.containsKey(c_pulses_array[p])) {
-                overlapping_schemas.addAll(starting_schemas.get(c_pulses_array[p]));
-            }
-            if (ending_schemas.containsKey(c_pulses_array[p])) {
-                overlapping_schemas.removeAll(ending_schemas.get(c_pulses_array[p]));
-            }
-            if (overlapping_schemas.size() > 1) {
-                for (int i = 0; i < vars.length; i++) {
-                    ArithExpr[] overlapping = new ArithExpr[overlapping_schemas.size()];
-                    for (int j = 0; j < overlapping.length; j++) {
-                        overlapping[j] = vars[i][schema_id.get(overlapping_schemas.get(j))];
-                    }
-                    o.Add(ctx.mkLe(ctx.mkAdd(overlapping), ctx.mkInt("1")));
-                }
-            }
-        }
-
-        System.out.println(o);
-
-        switch (o.Check()) {
-            case UNSATISFIABLE:
-                System.out.println("Unsatisfable..");
-                break;
-            case SATISFIABLE:
-                System.out.println("Solution found!");
-                System.out.println(o.getModel());
-                break;
-            default:
-                throw new AssertionError(o.Check().name());
-        }
-    }
-
-    private static double match_rate(User user, Schema schema) {
-        double mr = 0;
-        if (schema.president.getValue()) {
-            mr += user.president.getValue();
-        }
-        if (schema.structure.getValue()) {
-            mr += user.structure.getValue();
-        }
-        if (schema.brilliant.getValue()) {
-            mr += user.brilliant.getValue();
-        }
-        if (schema.evaluator.getValue()) {
-            mr += user.evaluator.getValue();
-        }
-        if (schema.concrete.getValue()) {
-            mr += user.concrete.getValue();
-        }
-        if (schema.explorer.getValue()) {
-            mr += user.explorer.getValue();
-        }
-        if (schema.worker.getValue()) {
-            mr += user.worker.getValue();
-        }
-        if (schema.objectivist.getValue()) {
-            mr += user.objectivist.getValue();
-        }
-        return mr;
+        Context.getInstance().solve();
     }
 }

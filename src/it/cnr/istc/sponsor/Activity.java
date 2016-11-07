@@ -30,7 +30,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import jfxtras.scene.control.agenda.Agenda;
 
 /**
  *
@@ -42,10 +41,9 @@ public class Activity {
     public final ObjectProperty<LocalDateTime> start;
     public final ObjectProperty<LocalDateTime> end;
     public final ObjectProperty<ObservableList<Schema>> schemas;
-    private final Agenda.Appointment appointment;
     private final ActivityEntity entity;
 
-    public Activity(Agenda.Appointment appointment, ActivityEntity entity) {
+    public Activity(ActivityEntity entity) {
         this.name = new SimpleStringProperty(entity.getName());
         this.start = new SimpleObjectProperty<>(LocalDateTime.ofInstant(entity.getStartTime().toInstant(), ZoneId.systemDefault()));
         this.end = new SimpleObjectProperty<>(LocalDateTime.ofInstant(entity.getEndTime().toInstant(), ZoneId.systemDefault()));
@@ -56,18 +54,21 @@ public class Activity {
         }
 
         this.name.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            appointment.setDescription(newValue);
-            appointment.setSummary(newValue);
+            Context.getInstance().getAppointment(this).setDescription(newValue);
+            Context.getInstance().getAppointment(this).setSummary(newValue);
+            Context.getInstance().agenda.getValue().refresh();
             entity.setName(newValue);
             Storage.getInstance().merge(entity);
         });
         this.start.addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
-            appointment.setStartLocalDateTime(newValue);
+            Context.getInstance().getAppointment(this).setStartLocalDateTime(newValue);
+            Context.getInstance().agenda.getValue().refresh();
             entity.setStartTime(Date.from(newValue.atZone(ZoneId.systemDefault()).toInstant()));
             Storage.getInstance().merge(entity);
         });
         this.end.addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
-            appointment.setEndLocalDateTime(newValue);
+            Context.getInstance().getAppointment(this).setEndLocalDateTime(newValue);
+            Context.getInstance().agenda.getValue().refresh();
             entity.setEndTime(Date.from(newValue.atZone(ZoneId.systemDefault()).toInstant()));
             Storage.getInstance().merge(entity);
         });
@@ -89,12 +90,7 @@ public class Activity {
             }
         });
 
-        this.appointment = appointment;
         this.entity = entity;
-    }
-
-    public Agenda.Appointment getAppointment() {
-        return appointment;
     }
 
     public ActivityEntity getEntity() {
