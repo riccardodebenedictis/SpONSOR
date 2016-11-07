@@ -46,7 +46,6 @@ public class Context {
     private static Context _instance;
     public final ObjectProperty<Stage> primary_stage = new SimpleObjectProperty<>();
     public final ObjectProperty<Activity> selected_activity = new SimpleObjectProperty<>();
-    public final ObjectProperty<Solution> solution = new SimpleObjectProperty<>();
     public final ObservableList<User> users = FXCollections.observableArrayList();
     private final Map<User, UserEntity> user_entity = new IdentityHashMap<>();
     private final Map<UserEntity, User> entity_user = new IdentityHashMap<>();
@@ -75,6 +74,8 @@ public class Context {
             entity_activity.put(c_activity, activity);
 
             Agenda.Appointment app = new Agenda.AppointmentImplLocal()
+                    .withDescription(activity.name.getValue())
+                    .withSummary(activity.name.getValue())
                     .withStartLocalDateTime(activity.start.getValue())
                     .withEndLocalDateTime(activity.end.getValue())
                     .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1"));
@@ -112,7 +113,7 @@ public class Context {
         entity.setEndTime(Date.from(range.getEndLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()));
         Storage.getInstance().persist(entity);
 
-        Activity activity = new Activity();
+        Activity activity = newActivity(entity);
 
         activities.add(activity);
 

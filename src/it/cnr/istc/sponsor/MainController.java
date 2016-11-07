@@ -17,15 +17,16 @@
 package it.cnr.istc.sponsor;
 
 import it.cnr.istc.sponsor.view.Activity;
-import it.cnr.istc.sponsor.view.Schema;
 import it.cnr.istc.sponsor.view.User;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -84,6 +85,14 @@ public class MainController implements Initializable {
     private Agenda agenda;
     @FXML
     private SplitPane split_pane;
+    @FXML
+    private TableView<User> userActivities;
+    @FXML
+    private TableColumn<User, String> userActivitiesFirstName;
+    @FXML
+    private TableColumn<User, String> userActivitiesLastName;
+    @FXML
+    private Agenda assignedActivities;
     private final DoubleProperty divider_position = new SimpleDoubleProperty(0.7);
 
     /**
@@ -140,7 +149,11 @@ public class MainController implements Initializable {
             agenda.appointments().add(Context.getInstance().getAppointment(activity));
         }
 
-        agenda.setNewAppointmentCallback(range -> Context.getInstance().newAppointment(range));
+        agenda.setNewAppointmentCallback(range -> {
+            Agenda.Appointment app = Context.getInstance().newAppointment(range);
+            assignedActivities.appointments().add(app);
+            return app;
+        });
         agenda.setAppointmentChangedCallback((Agenda.Appointment app) -> {
             Activity activity = Context.getInstance().getActivity(app);
             activity.start.setValue(app.getStartLocalDateTime());
@@ -169,11 +182,59 @@ public class MainController implements Initializable {
             }
         });
 
-        Context.getInstance().schemas.addListener((ListChangeListener.Change<? extends Schema> c) -> {
-            while (c.next()) {
+        for (Activity activity : Context.getInstance().activities) {
+            activity.name.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                Context.getInstance().getAppointment(activity).setDescription(newValue);
+                Context.getInstance().getAppointment(activity).setSummary(newValue);
                 agenda.refresh();
+                assignedActivities.refresh();
+            });
+            activity.start.addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
+                Context.getInstance().getAppointment(activity).setStartLocalDateTime(newValue);
+                agenda.refresh();
+                assignedActivities.refresh();
+            });
+            activity.end.addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
+                Context.getInstance().getAppointment(activity).setEndLocalDateTime(newValue);
+                agenda.refresh();
+                assignedActivities.refresh();
+            });
+        }
+        Context.getInstance().activities.addListener((ListChangeListener.Change<? extends Activity> c) -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    for (Activity activity : c.getAddedSubList()) {
+                        activity.name.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                            Context.getInstance().getAppointment(activity).setDescription(newValue);
+                            Context.getInstance().getAppointment(activity).setSummary(newValue);
+                            agenda.refresh();
+                            assignedActivities.refresh();
+                        });
+                        activity.start.addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
+                            Context.getInstance().getAppointment(activity).setStartLocalDateTime(newValue);
+                            agenda.refresh();
+                            assignedActivities.refresh();
+                        });
+                        activity.end.addListener((ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) -> {
+                            Context.getInstance().getAppointment(activity).setEndLocalDateTime(newValue);
+                            agenda.refresh();
+                            assignedActivities.refresh();
+                        });
+                    }
+                }
             }
         });
+
+        userActivities.itemsProperty().setValue(Context.getInstance().users);
+        userActivitiesFirstName.setCellValueFactory(cellData -> cellData.getValue().firstName);
+        userActivitiesLastName.setCellValueFactory(cellData -> cellData.getValue().lastName);
+
+        userActivities.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends User> observable, User oldValue, User newValue) -> {
+        });
+
+        for (Activity activity : Context.getInstance().activities) {
+            assignedActivities.appointments().add(Context.getInstance().getAppointment(activity));
+        }
     }
 
     public void addUser() {
@@ -187,6 +248,7 @@ public class MainController implements Initializable {
     }
 
     public void solve() {
-        Context.getInstance().solution.setValue(new Problem().solve());
+        Solution solution = new Problem().solve();
+
     }
 }
