@@ -18,8 +18,10 @@ package it.cnr.istc.sponsor;
 
 import it.cnr.istc.sponsor.view.Activity;
 import it.cnr.istc.sponsor.view.Schema;
+import it.cnr.istc.sponsor.view.User;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -29,6 +31,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import jfxtras.scene.control.LocalDateTimeTextField;
+import org.controlsfx.control.CheckListView;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.Glyph;
 
@@ -71,6 +74,10 @@ public class ActivityController implements Initializable {
     private TableColumn<Schema, Boolean> worker;
     @FXML
     private TableColumn<Schema, Boolean> objectivist;
+    @FXML
+    private CheckListView<User> preferences;
+    @FXML
+    private CheckListView<User> negations;
 
     /**
      * Initializes the controller class.
@@ -120,6 +127,25 @@ public class ActivityController implements Initializable {
         removeSchemas.disableProperty().bind(schemas.getSelectionModel().selectedItemProperty().isNull());
 
         schemas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        preferences.itemsProperty().setValue(Context.getInstance().users);
+        preferences.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
+            while (c.next()) {
+                for (User user : c.getAddedSubList()) {
+                }
+                for (User user : c.getRemoved()) {
+                }
+            }
+        });
+        negations.itemsProperty().setValue(Context.getInstance().users);
+        negations.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
+            while (c.next()) {
+                for (User user : c.getAddedSubList()) {
+                }
+                for (User user : c.getRemoved()) {
+                }
+            }
+        });
     }
 
     public void addSchema() {

@@ -41,4 +41,9 @@ public class User {
     public final IntegerProperty objectivist = new SimpleIntegerProperty();
     public final ObservableList<Schema> denials = FXCollections.observableArrayList();
     public final ObservableList<Schema> requests = FXCollections.observableArrayList();
+
+    @Override
+    public String toString() {
+        return firstName.getValue() + " " + lastName.getValue();
+    }
 }
