@@ -86,6 +86,8 @@ public class MainController implements Initializable {
     @FXML
     private SplitPane activities_split_pane;
     @FXML
+    private SplitPane user_activities_split_pane;
+    @FXML
     private SplitPane assigned_activities_split_pane;
     @FXML
     private TableView<User> userActivities;
@@ -234,6 +236,24 @@ public class MainController implements Initializable {
         userActivitiesLastName.setCellValueFactory(cellData -> cellData.getValue().lastName);
 
         userActivities.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends User> observable, User oldValue, User newValue) -> {
+            if (newValue != null) {
+                Context.getInstance().selected_user_activities.setValue(newValue);
+                FXMLLoader loader = new FXMLLoader(MainController.class.getResource("user_activities.fxml"));
+                try {
+                    if (user_activities_split_pane.getItems().size() == 1) {
+                        user_activities_split_pane.getItems().add(loader.load());
+                    } else {
+                        user_activities_split_pane.getItems().set(1, loader.load());
+                    }
+                    user_activities_split_pane.getDividers().get(0).positionProperty().bindBidirectional(divider_position);
+                } catch (IOException ex) {
+                    Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                if (user_activities_split_pane.getItems().size() == 2) {
+                    user_activities_split_pane.getItems().remove(1);
+                }
+            }
         });
 
         for (Activity activity : Context.getInstance().activities) {

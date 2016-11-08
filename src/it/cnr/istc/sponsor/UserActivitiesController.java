@@ -16,9 +16,13 @@
  */
 package it.cnr.istc.sponsor;
 
+import it.cnr.istc.sponsor.view.Activity;
+import it.cnr.istc.sponsor.view.User;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import jfxtras.scene.control.agenda.Agenda;
 
 /**
  * FXML Controller class
@@ -27,11 +31,24 @@ import javafx.fxml.Initializable;
  */
 public class UserActivitiesController implements Initializable {
 
+    @FXML
+    private Agenda agenda;
+
     /**
      * Initializes the controller class.
+     *
+     * @param url
+     * @param rb
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        User user = Context.getInstance().selected_user_activities.getValue();
+
+        Solution solution = Context.getInstance().solution.getValue();
+        if (solution != null) {
+            for (Activity activity : solution.getAssignedActivities(user)) {
+                agenda.appointments().add(Context.getInstance().getAppointment(activity));
+            }
+        }
     }
 }

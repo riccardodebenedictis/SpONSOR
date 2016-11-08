@@ -47,6 +47,7 @@ public class Context {
     public final ObjectProperty<Stage> primary_stage = new SimpleObjectProperty<>();
     public final ObjectProperty<Activity> selected_activity = new SimpleObjectProperty<>();
     public final ObjectProperty<Activity> selected_assigned_activity = new SimpleObjectProperty<>();
+    public final ObjectProperty<User> selected_user_activities = new SimpleObjectProperty<>();
     public final ObjectProperty<Solution> solution = new SimpleObjectProperty<>();
     public final ObservableList<User> users = FXCollections.observableArrayList();
     private final Map<User, UserEntity> user_entity = new IdentityHashMap<>();

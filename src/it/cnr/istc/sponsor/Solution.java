@@ -16,10 +16,12 @@
  */
 package it.cnr.istc.sponsor;
 
+import it.cnr.istc.sponsor.view.Activity;
 import it.cnr.istc.sponsor.view.Schema;
 import it.cnr.istc.sponsor.view.User;
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -37,5 +39,9 @@ public class Solution {
 
     public User getAssignedUser(Schema schema) {
         return assignments.get(schema);
+    }
+
+    public Collection<Activity> getAssignedActivities(User user) {
+        return user_schemas.get(user).stream().map(schema -> schema.activity).collect(Collectors.toList());
     }
 }
