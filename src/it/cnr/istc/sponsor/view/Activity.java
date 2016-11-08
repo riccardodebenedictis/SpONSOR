@@ -34,4 +34,6 @@ public class Activity {
     public final ObjectProperty<LocalDateTime> start = new SimpleObjectProperty<>();
     public final ObjectProperty<LocalDateTime> end = new SimpleObjectProperty<>();
     public final ObservableList<Schema> schemas = FXCollections.observableArrayList();
+    public final ObservableList<User> assigned_users = FXCollections.observableArrayList();
+    public final ObservableList<User> negated_users = FXCollections.observableArrayList();
 }

@@ -25,6 +25,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 
@@ -46,6 +47,10 @@ public class ActivityEntity implements Serializable {
     private Date endTime;
     @OneToMany(mappedBy = "activity")
     private final Collection<ProfileSchema> schemas = new ArrayList<>();
+    @ManyToMany(mappedBy = "denials")
+    private final Collection<UserEntity> negated_users = new ArrayList<>();
+    @ManyToMany(mappedBy = "requests")
+    private final Collection<UserEntity> assigned_users = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -89,6 +94,30 @@ public class ActivityEntity implements Serializable {
 
     public Collection<ProfileSchema> getSchemas() {
         return Collections.unmodifiableCollection(schemas);
+    }
+
+    public void addNegatedUser(UserEntity denial) {
+        negated_users.add(denial);
+    }
+
+    public void removeNegatedUser(UserEntity denial) {
+        negated_users.remove(denial);
+    }
+
+    public Collection<UserEntity> getNegatedUsers() {
+        return Collections.unmodifiableCollection(negated_users);
+    }
+
+    public void addAssignedUser(UserEntity request) {
+        assigned_users.add(request);
+    }
+
+    public void removeAssignedUser(UserEntity request) {
+        assigned_users.remove(request);
+    }
+
+    public Collection<UserEntity> getAssignedUsers() {
+        return Collections.unmodifiableCollection(assigned_users);
     }
 
     @Override

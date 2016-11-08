@@ -39,8 +39,8 @@ public class User {
     public final IntegerProperty explorer = new SimpleIntegerProperty();
     public final IntegerProperty worker = new SimpleIntegerProperty();
     public final IntegerProperty objectivist = new SimpleIntegerProperty();
-    public final ObservableList<Schema> denials = FXCollections.observableArrayList();
-    public final ObservableList<Schema> requests = FXCollections.observableArrayList();
+    public final ObservableList<Activity> assigned_activities = FXCollections.observableArrayList();
+    public final ObservableList<Activity> negated_activities = FXCollections.observableArrayList();
 
     @Override
     public String toString() {

@@ -129,20 +129,26 @@ public class ActivityController implements Initializable {
         schemas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         preferences.itemsProperty().setValue(Context.getInstance().users);
+        preferences.getCheckModel().getCheckedItems().addAll(activity.assigned_users);
         preferences.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
             while (c.next()) {
                 for (User user : c.getAddedSubList()) {
+                    activity.assigned_users.add(user);
                 }
                 for (User user : c.getRemoved()) {
+                    activity.assigned_users.remove(user);
                 }
             }
         });
         negations.itemsProperty().setValue(Context.getInstance().users);
+        negations.getCheckModel().getCheckedItems().addAll(activity.negated_users);
         negations.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
             while (c.next()) {
                 for (User user : c.getAddedSubList()) {
+                    activity.negated_users.add(user);
                 }
                 for (User user : c.getRemoved()) {
+                    activity.negated_users.remove(user);
                 }
             }
         });

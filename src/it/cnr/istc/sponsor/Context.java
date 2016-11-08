@@ -33,6 +33,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.stage.Stage;
 import jfxtras.scene.control.agenda.Agenda;
@@ -95,14 +96,37 @@ public class Context {
         }
 
         for (UserEntity user : c_users) {
-            for (ProfileSchema denial : user.getDenials()) {
-                entity_user.get(user).denials.add(entity_schemas.get(denial));
-                entity_schemas.get(denial).denials.add(entity_user.get(user));
+            for (ActivityEntity activity : user.getAssignedActivities()) {
+                entity_user.get(user).assigned_activities.add(entity_activity.get(activity));
+                entity_activity.get(activity).assigned_users.add(entity_user.get(user));
             }
-            for (ProfileSchema denial : user.getRequests()) {
-                entity_user.get(user).requests.add(entity_schemas.get(denial));
-                entity_schemas.get(denial).requests.add(entity_user.get(user));
+            for (ActivityEntity activity : user.getNegatedActivities()) {
+                entity_user.get(user).negated_activities.add(entity_activity.get(activity));
+                entity_activity.get(activity).negated_users.add(entity_user.get(user));
             }
+        }
+
+        for (User user : users) {
+            user.assigned_activities.addListener((ListChangeListener.Change<? extends Activity> c) -> {
+                while (c.next()) {
+                    for (Activity activity : c.getAddedSubList()) {
+                        Storage.getInstance().assign(user_entity.get(user), activity_entity.get(activity));
+                    }
+                    for (Activity activity : c.getRemoved()) {
+                        Storage.getInstance().unassign(user_entity.get(user), activity_entity.get(activity));
+                    }
+                }
+            });
+            user.negated_activities.addListener((ListChangeListener.Change<? extends Activity> c) -> {
+                while (c.next()) {
+                    for (Activity activity : c.getAddedSubList()) {
+                        Storage.getInstance().negate(user_entity.get(user), activity_entity.get(activity));
+                    }
+                    for (Activity activity : c.getRemoved()) {
+                        Storage.getInstance().allow(user_entity.get(user), activity_entity.get(activity));
+                    }
+                }
+            });
         }
     }
 

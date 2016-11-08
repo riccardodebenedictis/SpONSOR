@@ -48,9 +48,9 @@ public class UserEntity implements Serializable {
     private int c_worker;
     private int c_objectivist;
     @ManyToMany
-    private final Collection<ProfileSchema> denials = new ArrayList<>();
+    private final Collection<ActivityEntity> negated_activities = new ArrayList<>();
     @ManyToMany
-    private final Collection<ProfileSchema> requests = new ArrayList<>();
+    private final Collection<ActivityEntity> assigned_activities = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -140,28 +140,28 @@ public class UserEntity implements Serializable {
         this.c_objectivist = objectivist;
     }
 
-    public void addDenial(ProfileSchema denial) {
-        denials.add(denial);
+    public void addNegatedActivity(ActivityEntity denial) {
+        negated_activities.add(denial);
     }
 
-    public void removeDenial(ProfileSchema denial) {
-        denials.remove(denial);
+    public void removeNegatedActivity(ActivityEntity denial) {
+        negated_activities.remove(denial);
     }
 
-    public Collection<ProfileSchema> getDenials() {
-        return Collections.unmodifiableCollection(denials);
+    public Collection<ActivityEntity> getNegatedActivities() {
+        return Collections.unmodifiableCollection(negated_activities);
     }
 
-    public void addProfileSchema(ProfileSchema request) {
-        requests.add(request);
+    public void addAssignedActivity(ActivityEntity request) {
+        assigned_activities.add(request);
     }
 
-    public void removeProfileSchema(ProfileSchema request) {
-        requests.remove(request);
+    public void removeAssignedActivity(ActivityEntity request) {
+        assigned_activities.remove(request);
     }
 
-    public Collection<ProfileSchema> getRequests() {
-        return Collections.unmodifiableCollection(requests);
+    public Collection<ActivityEntity> getAssignedActivities() {
+        return Collections.unmodifiableCollection(assigned_activities);
     }
 
     @Override

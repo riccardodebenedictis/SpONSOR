@@ -18,8 +18,6 @@ package it.cnr.istc.sponsor.view;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 /**
  *
@@ -36,8 +34,6 @@ public class Schema {
     public final BooleanProperty explorer = new SimpleBooleanProperty();
     public final BooleanProperty worker = new SimpleBooleanProperty();
     public final BooleanProperty objectivist = new SimpleBooleanProperty();
-    public final ObservableList<User> denials = FXCollections.observableArrayList();
-    public final ObservableList<User> requests = FXCollections.observableArrayList();
 
     public Schema(Activity activity) {
         this.activity = activity;

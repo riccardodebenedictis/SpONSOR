@@ -21,6 +21,7 @@ import com.microsoft.z3.IntExpr;
 import com.microsoft.z3.Model;
 import com.microsoft.z3.Optimize;
 import com.microsoft.z3.Status;
+import it.cnr.istc.sponsor.view.Activity;
 import it.cnr.istc.sponsor.view.Schema;
 import it.cnr.istc.sponsor.view.User;
 import java.time.LocalDateTime;
@@ -137,11 +138,21 @@ public class Problem {
 
         // We set the user constraints..
         for (User user : Context.getInstance().users) {
-            for (Schema schema : user.denials) {
-                o.Add(ctx.mkEq(user_assignments.get(user).get(schema), ctx.mkInt("0")));
+            for (Activity activity : user.assigned_activities) {
+                ArithExpr[] cst = new ArithExpr[activity.schemas.size()];
+                schema_id = 0;
+                for (Schema schema : activity.schemas) {
+                    cst[schema_id++] = user_assignments.get(user).get(schema);
+                }
+                o.Add(ctx.mkEq(ctx.mkAdd(cst), ctx.mkInt("1")));
             }
-            for (Schema schema : user.requests) {
-                o.Add(ctx.mkEq(user_assignments.get(user).get(schema), ctx.mkInt("1")));
+            for (Activity activity : user.negated_activities) {
+                ArithExpr[] cst = new ArithExpr[activity.schemas.size()];
+                schema_id = 0;
+                for (Schema schema : activity.schemas) {
+                    cst[schema_id++] = user_assignments.get(user).get(schema);
+                }
+                o.Add(ctx.mkEq(ctx.mkAdd(cst), ctx.mkInt("0")));
             }
         }
     }

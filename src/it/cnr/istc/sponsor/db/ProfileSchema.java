@@ -17,14 +17,10 @@
 package it.cnr.istc.sponsor.db;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
 /**
@@ -48,10 +44,6 @@ public class ProfileSchema implements Serializable {
     private boolean c_explorer;
     private boolean c_worker;
     private boolean c_objectivist;
-    @ManyToMany(mappedBy = "denials")
-    private final Collection<UserEntity> denials = new ArrayList<>();
-    @ManyToMany(mappedBy = "requests")
-    private final Collection<UserEntity> requests = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -131,30 +123,6 @@ public class ProfileSchema implements Serializable {
 
     public void setObjectivist(boolean objectivist) {
         this.c_objectivist = objectivist;
-    }
-
-    public void addDenial(UserEntity denial) {
-        denials.add(denial);
-    }
-
-    public void removeDenial(UserEntity denial) {
-        denials.remove(denial);
-    }
-
-    public Collection<UserEntity> getDenials() {
-        return Collections.unmodifiableCollection(denials);
-    }
-
-    public void addProfileSchema(UserEntity request) {
-        requests.add(request);
-    }
-
-    public void removeProfileSchema(UserEntity request) {
-        requests.remove(request);
-    }
-
-    public Collection<UserEntity> getRequests() {
-        return Collections.unmodifiableCollection(requests);
     }
 
     @Override

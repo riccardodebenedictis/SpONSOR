@@ -93,6 +93,58 @@ public class Storage {
         em.getTransaction().commit();
     }
 
+    public void assign(UserEntity user, ActivityEntity activity) {
+        em.getTransaction().begin();
+        if (!user.getAssignedActivities().contains(activity)) {
+            user.addAssignedActivity(activity);
+            em.merge(user);
+        }
+        if (!activity.getAssignedUsers().contains(user)) {
+            activity.addAssignedUser(user);
+            em.merge(activity);
+        }
+        em.getTransaction().commit();
+    }
+
+    public void unassign(UserEntity user, ActivityEntity activity) {
+        em.getTransaction().begin();
+        if (user.getAssignedActivities().contains(activity)) {
+            user.removeAssignedActivity(activity);
+            em.merge(user);
+        }
+        if (activity.getAssignedUsers().contains(user)) {
+            activity.removeAssignedUser(user);
+            em.merge(activity);
+        }
+        em.getTransaction().commit();
+    }
+
+    public void negate(UserEntity user, ActivityEntity activity) {
+        em.getTransaction().begin();
+        if (!user.getNegatedActivities().contains(activity)) {
+            user.addNegatedActivity(activity);
+            em.merge(user);
+        }
+        if (!activity.getNegatedUsers().contains(user)) {
+            activity.addNegatedUser(user);
+            em.merge(activity);
+        }
+        em.getTransaction().commit();
+    }
+
+    public void allow(UserEntity user, ActivityEntity activity) {
+        em.getTransaction().begin();
+        if (user.getNegatedActivities().contains(activity)) {
+            user.removeNegatedActivity(activity);
+            em.merge(user);
+        }
+        if (activity.getNegatedUsers().contains(user)) {
+            activity.removeNegatedUser(user);
+            em.merge(activity);
+        }
+        em.getTransaction().commit();
+    }
+
     private Storage() {
     }
 

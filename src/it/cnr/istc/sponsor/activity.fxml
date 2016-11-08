@@ -126,7 +126,7 @@
                         </GridPane>
                     </content>
                 </TitledPane>
-                <TitledPane text="Preferences">
+                <TitledPane text="Assignments">
                     <content>
                         <GridPane>
                             <columnConstraints>
