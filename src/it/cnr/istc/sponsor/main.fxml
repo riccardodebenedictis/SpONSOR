@@ -134,7 +134,7 @@
                 </Tab>
                 <Tab text="User activities">
                     <content>
-                        <SplitPane fx:id="user_activities_split_pane" prefHeight="200.0" prefWidth="200.0">
+                        <SplitPane fx:id="user_activities_split_pane">
                             <items>
                                 <TableView fx:id="userActivities">
                                     <columns>
@@ -154,7 +154,7 @@
                 </Tab>
                 <Tab text="Assigned activities">
                     <content>
-                        <SplitPane fx:id="assigned_activities_split_pane" prefHeight="200.0" prefWidth="200.0">
+                        <SplitPane fx:id="assigned_activities_split_pane">
                             <items>
                                 <Agenda fx:id="assignedActivities" />
                             </items>

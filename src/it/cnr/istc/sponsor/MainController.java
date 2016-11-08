@@ -236,7 +236,7 @@ public class MainController implements Initializable {
         userActivitiesLastName.setCellValueFactory(cellData -> cellData.getValue().lastName);
 
         userActivities.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends User> observable, User oldValue, User newValue) -> {
-            if (newValue != null) {
+            if (newValue != null && Context.getInstance().solution.getValue() != null) {
                 Context.getInstance().selected_user_activities.setValue(newValue);
                 FXMLLoader loader = new FXMLLoader(MainController.class.getResource("user_activities.fxml"));
                 try {
@@ -262,7 +262,7 @@ public class MainController implements Initializable {
 
         assignedActivities.selectedAppointments().addListener((ListChangeListener.Change<? extends Agenda.Appointment> c) -> {
             while (c.next()) {
-                if (!c.getList().isEmpty()) {
+                if (!c.getList().isEmpty() && Context.getInstance().solution.getValue() != null) {
                     Context.getInstance().selected_assigned_activity.setValue(Context.getInstance().getActivity(c.getList().get(0)));
                     FXMLLoader loader = new FXMLLoader(MainController.class.getResource("assigned_activity.fxml"));
                     try {
@@ -295,7 +295,6 @@ public class MainController implements Initializable {
     }
 
     public void solve() {
-        Solution solution = new Problem().solve();
-
+        Context.getInstance().solution.setValue(new Problem().solve());
     }
 }
