@@ -75,7 +75,7 @@ public class ActivityController implements Initializable {
     @FXML
     private TableColumn<Schema, Boolean> objectivist;
     @FXML
-    private CheckListView<User> preferences;
+    private CheckListView<User> assignments;
     @FXML
     private CheckListView<User> negations;
 
@@ -128,9 +128,11 @@ public class ActivityController implements Initializable {
 
         schemas.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        preferences.itemsProperty().setValue(Context.getInstance().users);
-        preferences.getCheckModel().getCheckedItems().addAll(activity.assigned_users);
-        preferences.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
+        assignments.itemsProperty().setValue(Context.getInstance().users);
+        for (User user : activity.assigned_users) {
+            assignments.getCheckModel().getCheckedItems().add(user);
+        }
+        assignments.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
             while (c.next()) {
                 for (User user : c.getAddedSubList()) {
                     activity.assigned_users.add(user);
@@ -141,7 +143,9 @@ public class ActivityController implements Initializable {
             }
         });
         negations.itemsProperty().setValue(Context.getInstance().users);
-        negations.getCheckModel().getCheckedItems().addAll(activity.negated_users);
+        for (User user : activity.negated_users) {
+            negations.getCheckModel().getCheckedItems().add(user);
+        }
         negations.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
             while (c.next()) {
                 for (User user : c.getAddedSubList()) {

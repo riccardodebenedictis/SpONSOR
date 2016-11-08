@@ -295,6 +295,6 @@ public class MainController implements Initializable {
     }
 
     public void solve() {
-        Context.getInstance().solution.setValue(new Problem().solve());
+        Context.getInstance().solve();
     }
 }

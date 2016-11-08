@@ -136,7 +136,7 @@
                                 <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
                             </rowConstraints>
                             <children>
-                                <CheckListView fx:id="preferences" />
+                                <CheckListView fx:id="assignments" />
                             </children>
                         </GridPane>
                     </content>

@@ -47,9 +47,9 @@ public class ActivityEntity implements Serializable {
     private Date endTime;
     @OneToMany(mappedBy = "activity")
     private final Collection<ProfileSchema> schemas = new ArrayList<>();
-    @ManyToMany(mappedBy = "denials")
+    @ManyToMany(mappedBy = "negated_activities")
     private final Collection<UserEntity> negated_users = new ArrayList<>();
-    @ManyToMany(mappedBy = "requests")
+    @ManyToMany(mappedBy = "assigned_activities")
     private final Collection<UserEntity> assigned_users = new ArrayList<>();
 
     public Long getId() {

@@ -16,6 +16,11 @@
  */
 package it.cnr.istc.sponsor;
 
+import com.microsoft.z3.ArithExpr;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Model;
+import com.microsoft.z3.Optimize;
+import com.microsoft.z3.Status;
 import it.cnr.istc.sponsor.db.ActivityEntity;
 import it.cnr.istc.sponsor.db.ProfileSchema;
 import it.cnr.istc.sponsor.db.Storage;
@@ -25,10 +30,18 @@ import it.cnr.istc.sponsor.view.Schema;
 import it.cnr.istc.sponsor.view.User;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -44,6 +57,7 @@ import jfxtras.scene.control.agenda.Agenda;
  */
 public class Context {
 
+    private static final Logger LOG = Logger.getLogger(Context.class.getName());
     private static Context _instance;
     public final ObjectProperty<Stage> primary_stage = new SimpleObjectProperty<>();
     public final ObjectProperty<Activity> selected_activity = new SimpleObjectProperty<>();
@@ -318,5 +332,179 @@ public class Context {
             Storage.getInstance().merge(entity);
         });
         return schema;
+    }
+
+    public boolean solve() {
+        LOG.info("Building the problem..");
+        long start_time = System.currentTimeMillis();
+        Map<User, Map<Schema, IntExpr>> user_assignments = new IdentityHashMap<>();
+        Map<Schema, Map<User, IntExpr>> schema_assignments = new IdentityHashMap<>();
+        com.microsoft.z3.Context ctx;
+        Optimize o;
+        // the objective function..
+        ArithExpr[] objective;
+        HashMap<String, String> cfg = new HashMap<>();
+        cfg.put("model", "true");
+        ctx = new com.microsoft.z3.Context(cfg);
+        o = ctx.mkOptimize();
+        for (User user : Context.getInstance().users) {
+            user_assignments.put(user, new IdentityHashMap<>());
+        }
+        for (Schema schema : Context.getInstance().schemas) {
+            schema_assignments.put(schema, new IdentityHashMap<>());
+        }
+
+        objective = new ArithExpr[Context.getInstance().users.size() * Context.getInstance().schemas.size()];
+
+        int user_id = 0, schema_id = 0, i = 0;
+        for (User user : Context.getInstance().users) {
+            schema_id = 0;
+            for (Schema schema : Context.getInstance().schemas) {
+                IntExpr var = ctx.mkIntConst("x_" + user_id++ + "_" + schema_id++);
+                o.Add(ctx.mkGe(var, ctx.mkInt("0")), ctx.mkLe(var, ctx.mkInt("1")));
+                user_assignments.get(user).put(schema, var);
+                schema_assignments.get(schema).put(user, var);
+                objective[i++] = ctx.mkMul(var, ctx.mkReal(Double.toString(match_rate(user, schema))));
+            }
+        }
+        Optimize.Handle handle = o.MkMaximize(ctx.mkAdd(objective));
+
+        // any users should do something..
+        for (User user : Context.getInstance().users) {
+            ArithExpr[] cst = new ArithExpr[Context.getInstance().schemas.size()];
+            schema_id = 0;
+            for (Schema schema : Context.getInstance().schemas) {
+                cst[schema_id++] = user_assignments.get(user).get(schema);
+            }
+            o.Add(ctx.mkGe(ctx.mkAdd(cst), ctx.mkInt("1")));
+        }
+
+        // every schema should be done by someone..
+        for (Schema schema : Context.getInstance().schemas) {
+            ArithExpr[] cst = new ArithExpr[Context.getInstance().users.size()];
+            schema_id = 0;
+            for (User user : Context.getInstance().users) {
+                cst[schema_id++] = user_assignments.get(user).get(schema);
+            }
+            o.Add(ctx.mkEq(ctx.mkAdd(cst), ctx.mkInt("1")));
+        }
+
+        // overlapping schemas cannot be done by the same person..
+        Map<LocalDateTime, Collection<Schema>> starting_schemas = new HashMap<>();
+        Map<LocalDateTime, Collection<Schema>> ending_schemas = new HashMap<>();
+        Set<LocalDateTime> pulses = new HashSet<>();
+        for (Schema schema : Context.getInstance().schemas) {
+            if (!starting_schemas.containsKey(schema.activity.start.getValue())) {
+                starting_schemas.put(schema.activity.start.getValue(), new ArrayList<>());
+            }
+            if (!ending_schemas.containsKey(schema.activity.end.getValue())) {
+                ending_schemas.put(schema.activity.end.getValue(), new ArrayList<>());
+            }
+            starting_schemas.get(schema.activity.start.getValue()).add(schema);
+            ending_schemas.get(schema.activity.end.getValue()).add(schema);
+            pulses.add(schema.activity.start.getValue());
+            pulses.add(schema.activity.end.getValue());
+        }
+
+        // Sort current pulses
+        LocalDateTime[] c_pulses_array = pulses.toArray(new LocalDateTime[pulses.size()]);
+        Arrays.sort(c_pulses_array);
+
+        List<Schema> overlapping_schemas = new ArrayList<>();
+        for (LocalDateTime time : c_pulses_array) {
+            if (starting_schemas.containsKey(time)) {
+                overlapping_schemas.addAll(starting_schemas.get(time));
+            }
+            if (ending_schemas.containsKey(time)) {
+                overlapping_schemas.removeAll(ending_schemas.get(time));
+            }
+            if (overlapping_schemas.size() > 1) {
+                for (User user : Context.getInstance().users) {
+                    ArithExpr[] cst = new ArithExpr[overlapping_schemas.size()];
+                    schema_id = 0;
+                    for (Schema schema : overlapping_schemas) {
+                        cst[schema_id++] = user_assignments.get(user).get(schema);
+                    }
+                    o.Add(ctx.mkLe(ctx.mkAdd(cst), ctx.mkInt("1")));
+                }
+            }
+        }
+
+        // We set the user constraints..
+        for (User user : Context.getInstance().users) {
+            for (Activity activity : user.assigned_activities) {
+                ArithExpr[] cst = new ArithExpr[activity.schemas.size()];
+                schema_id = 0;
+                for (Schema schema : activity.schemas) {
+                    cst[schema_id++] = user_assignments.get(user).get(schema);
+                }
+                o.Add(ctx.mkEq(ctx.mkAdd(cst), ctx.mkInt("1")));
+            }
+            for (Activity activity : user.negated_activities) {
+                ArithExpr[] cst = new ArithExpr[activity.schemas.size()];
+                schema_id = 0;
+                for (Schema schema : activity.schemas) {
+                    cst[schema_id++] = user_assignments.get(user).get(schema);
+                }
+                o.Add(ctx.mkEq(ctx.mkAdd(cst), ctx.mkInt("0")));
+            }
+        }
+
+        long problem_time = System.currentTimeMillis();
+        LOG.log(Level.INFO, "Building the problem required {0} seconds..", (problem_time - start_time) / 1000);
+        LOG.info("Solving the problem..");
+        if (o.Check() == Status.SATISFIABLE) {
+            long solving_time = System.currentTimeMillis();
+            LOG.log(Level.INFO, "Solving the problem required {0} seconds..", (solving_time - problem_time) / 1000);
+            LOG.log(Level.INFO, "Total time: {0} seconds..", (solving_time - start_time) / 1000);
+            LOG.log(Level.INFO, "Solution quality: {0}", handle.toString());
+            Map<User, Collection<Schema>> user_schemas = new IdentityHashMap<>();
+            Map<Schema, User> assignments = new IdentityHashMap<>();
+            Model model = o.getModel();
+            for (Map.Entry<User, Map<Schema, IntExpr>> user_entry : user_assignments.entrySet()) {
+                user_schemas.put(user_entry.getKey(), new ArrayList<>());
+                for (Map.Entry<Schema, IntExpr> schema_entry : user_entry.getValue().entrySet()) {
+                    if (model.evaluate(schema_entry.getValue(), true).toString().equals("1")) {
+                        user_schemas.get(user_entry.getKey()).add(schema_entry.getKey());
+                        assignments.put(schema_entry.getKey(), user_entry.getKey());
+                    }
+                }
+            }
+            solution.setValue(new Solution(user_schemas, assignments));
+            return true;
+        } else {
+            LOG.info("The problem is inconsistent!!");
+            solution.setValue(null);
+            return false;
+        }
+    }
+
+    private static double match_rate(User user, Schema schema) {
+        double mr = 0;
+        if (schema.president.getValue()) {
+            mr += user.president.getValue();
+        }
+        if (schema.structure.getValue()) {
+            mr += user.structure.getValue();
+        }
+        if (schema.brilliant.getValue()) {
+            mr += user.brilliant.getValue();
+        }
+        if (schema.evaluator.getValue()) {
+            mr += user.evaluator.getValue();
+        }
+        if (schema.concrete.getValue()) {
+            mr += user.concrete.getValue();
+        }
+        if (schema.explorer.getValue()) {
+            mr += user.explorer.getValue();
+        }
+        if (schema.worker.getValue()) {
+            mr += user.worker.getValue();
+        }
+        if (schema.objectivist.getValue()) {
+            mr += user.objectivist.getValue();
+        }
+        return mr;
     }
 }
