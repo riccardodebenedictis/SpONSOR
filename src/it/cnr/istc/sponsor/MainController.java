@@ -84,7 +84,9 @@ public class MainController implements Initializable {
     @FXML
     private Agenda agenda;
     @FXML
-    private SplitPane split_pane;
+    private SplitPane activities_split_pane;
+    @FXML
+    private SplitPane assigned_activities_split_pane;
     @FXML
     private TableView<User> userActivities;
     @FXML
@@ -162,22 +164,24 @@ public class MainController implements Initializable {
         });
 
         agenda.selectedAppointments().addListener((ListChangeListener.Change<? extends Agenda.Appointment> c) -> {
-            if (!c.getList().isEmpty()) {
-                Context.getInstance().selected_activity.setValue(Context.getInstance().getActivity(c.getList().get(0)));
-                FXMLLoader loader = new FXMLLoader(MainController.class.getResource("activity.fxml"));
-                try {
-                    if (split_pane.getItems().size() == 1) {
-                        split_pane.getItems().add(loader.load());
-                    } else {
-                        split_pane.getItems().set(1, loader.load());
+            while (c.next()) {
+                if (!c.getList().isEmpty()) {
+                    Context.getInstance().selected_activity.setValue(Context.getInstance().getActivity(c.getList().get(0)));
+                    FXMLLoader loader = new FXMLLoader(MainController.class.getResource("activity.fxml"));
+                    try {
+                        if (activities_split_pane.getItems().size() == 1) {
+                            activities_split_pane.getItems().add(loader.load());
+                        } else {
+                            activities_split_pane.getItems().set(1, loader.load());
+                        }
+                        activities_split_pane.getDividers().get(0).positionProperty().bindBidirectional(divider_position);
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    split_pane.getDividers().get(0).positionProperty().bindBidirectional(divider_position);
-                } catch (IOException ex) {
-                    Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                if (split_pane.getItems().size() == 2) {
-                    split_pane.getItems().remove(1);
+                } else {
+                    if (activities_split_pane.getItems().size() == 2) {
+                        activities_split_pane.getItems().remove(1);
+                    }
                 }
             }
         });
@@ -235,6 +239,29 @@ public class MainController implements Initializable {
         for (Activity activity : Context.getInstance().activities) {
             assignedActivities.appointments().add(Context.getInstance().getAppointment(activity));
         }
+
+        assignedActivities.selectedAppointments().addListener((ListChangeListener.Change<? extends Agenda.Appointment> c) -> {
+            while (c.next()) {
+                if (!c.getList().isEmpty()) {
+                    Context.getInstance().selected_assigned_activity.setValue(Context.getInstance().getActivity(c.getList().get(0)));
+                    FXMLLoader loader = new FXMLLoader(MainController.class.getResource("assigned_activity.fxml"));
+                    try {
+                        if (assigned_activities_split_pane.getItems().size() == 1) {
+                            assigned_activities_split_pane.getItems().add(loader.load());
+                        } else {
+                            assigned_activities_split_pane.getItems().set(1, loader.load());
+                        }
+                        assigned_activities_split_pane.getDividers().get(0).positionProperty().bindBidirectional(divider_position);
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    if (assigned_activities_split_pane.getItems().size() == 2) {
+                        assigned_activities_split_pane.getItems().remove(1);
+                    }
+                }
+            }
+        });
     }
 
     public void addUser() {

@@ -16,26 +16,22 @@
  */
 package it.cnr.istc.sponsor;
 
-import it.cnr.istc.sponsor.view.Schema;
-import it.cnr.istc.sponsor.view.User;
-import java.util.Collection;
-import java.util.Map;
+import java.net.URL;
+import java.util.ResourceBundle;
+import javafx.fxml.Initializable;
 
 /**
+ * FXML Controller class
  *
  * @author Riccardo De Benedictis <riccardo.debenedictis@istc.cnr.it>
  */
-public class Solution {
+public class UserActivitiesController implements Initializable {
 
-    private final Map<User, Collection<Schema>> user_schemas;
-    private final Map<Schema, User> assignments;
-
-    public Solution(Map<User, Collection<Schema>> user_schemas, Map<Schema, User> assignments) {
-        this.user_schemas = user_schemas;
-        this.assignments = assignments;
-    }
-
-    public User getAssignedUser(Schema schema) {
-        return assignments.get(schema);
+    /**
+     * Initializes the controller class.
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        // TODO
     }
 }

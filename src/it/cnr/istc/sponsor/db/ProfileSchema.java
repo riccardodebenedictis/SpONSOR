@@ -19,6 +19,7 @@ package it.cnr.istc.sponsor.db;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -141,7 +142,7 @@ public class ProfileSchema implements Serializable {
     }
 
     public Collection<UserEntity> getDenials() {
-        return denials;
+        return Collections.unmodifiableCollection(denials);
     }
 
     public void addProfileSchema(UserEntity request) {
@@ -153,7 +154,7 @@ public class ProfileSchema implements Serializable {
     }
 
     public Collection<UserEntity> getRequests() {
-        return requests;
+        return Collections.unmodifiableCollection(requests);
     }
 
     @Override

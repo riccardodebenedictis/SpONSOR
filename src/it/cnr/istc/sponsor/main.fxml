@@ -121,41 +121,42 @@
                 </Tab>
                 <Tab text="Activities">
                     <content>
-                        <SplitPane fx:id="split_pane">
+                        <SplitPane fx:id="activities_split_pane">
                             <items>
                                 <Agenda fx:id="agenda" />
                             </items>
                         </SplitPane>
                     </content>
                 </Tab>
-            <Tab text="User activities">
-               <content>
-                  <SplitPane prefHeight="200.0" prefWidth="200.0">
-                     <items>
-                        <TableView fx:id="userActivities">
-                          <columns>
-                            <TableColumn fx:id="userActivitiesFirstName" prefWidth="75.0" text="First name" />
-                            <TableColumn fx:id="userActivitiesLastName" prefWidth="75.0" text="Last name" />
-                          </columns>
-                           <padding>
-                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                           </padding>
-                           <columnResizePolicy>
-                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                           </columnResizePolicy>
-                        </TableView>
-                     </items>
-                  </SplitPane>
-               </content>
-            </Tab>
-            <Tab text="Assigned activities">
-               <content>
-                  <SplitPane prefHeight="200.0" prefWidth="200.0">
-                     <items>
-                        <Agenda fx:id="assignedActivities" />
-                     </items></SplitPane>
-               </content>
-            </Tab>
+                <Tab text="User activities">
+                    <content>
+                        <SplitPane prefHeight="200.0" prefWidth="200.0">
+                            <items>
+                                <TableView fx:id="userActivities">
+                                    <columns>
+                                        <TableColumn fx:id="userActivitiesFirstName" prefWidth="75.0" text="First name" />
+                                        <TableColumn fx:id="userActivitiesLastName" prefWidth="75.0" text="Last name" />
+                                    </columns>
+                                    <padding>
+                                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                    </padding>
+                                    <columnResizePolicy>
+                                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                    </columnResizePolicy>
+                                </TableView>
+                            </items>
+                        </SplitPane>
+                    </content>
+                </Tab>
+                <Tab text="Assigned activities">
+                    <content>
+                        <SplitPane fx:id="assigned_activities_split_pane" prefHeight="200.0" prefWidth="200.0">
+                            <items>
+                                <Agenda fx:id="assignedActivities" />
+                            </items>
+                        </SplitPane>
+                    </content>
+                </Tab>
             </tabs>
         </TabPane>
     </center>
