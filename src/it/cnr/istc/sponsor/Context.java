@@ -336,6 +336,10 @@ public class Context {
 
     public boolean solve() {
         LOG.info("Building the problem..");
+        if (Context.getInstance().users.size() < Context.getInstance().schemas.size()) {
+            LOG.warning("The number of users is lower then the number of schemas..");
+            return false;
+        }
         long start_time = System.currentTimeMillis();
         Map<User, Map<Schema, IntExpr>> user_assignments = new IdentityHashMap<>();
         Map<Schema, Map<User, IntExpr>> schema_assignments = new IdentityHashMap<>();

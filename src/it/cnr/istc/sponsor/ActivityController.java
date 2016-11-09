@@ -130,29 +130,33 @@ public class ActivityController implements Initializable {
 
         assignments.itemsProperty().setValue(Context.getInstance().users);
         for (User user : activity.assigned_users) {
-            assignments.getCheckModel().getCheckedItems().add(user);
+            assignments.getCheckModel().check(user);
         }
         assignments.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
             while (c.next()) {
                 for (User user : c.getAddedSubList()) {
                     activity.assigned_users.add(user);
+                    user.assigned_activities.add(activity);
                 }
                 for (User user : c.getRemoved()) {
                     activity.assigned_users.remove(user);
+                    user.assigned_activities.remove(activity);
                 }
             }
         });
         negations.itemsProperty().setValue(Context.getInstance().users);
         for (User user : activity.negated_users) {
-            negations.getCheckModel().getCheckedItems().add(user);
+            negations.getCheckModel().check(user);
         }
         negations.getCheckModel().getCheckedItems().addListener((ListChangeListener.Change<? extends User> c) -> {
             while (c.next()) {
                 for (User user : c.getAddedSubList()) {
                     activity.negated_users.add(user);
+                    user.negated_activities.add(activity);
                 }
                 for (User user : c.getRemoved()) {
                     activity.negated_users.remove(user);
+                    user.negated_activities.remove(activity);
                 }
             }
         });

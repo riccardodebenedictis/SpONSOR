@@ -24,6 +24,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 
 /**
@@ -48,8 +50,14 @@ public class UserEntity implements Serializable {
     private int c_worker;
     private int c_objectivist;
     @ManyToMany
+    @JoinTable(name = "NEGATED_USER_ACTIVITIES",
+            joinColumns = @JoinColumn(name = "USER_ID", referencedColumnName = "ID"),
+            inverseJoinColumns = @JoinColumn(name = "ACTIVITY_ID", referencedColumnName = "ID"))
     private final Collection<ActivityEntity> negated_activities = new ArrayList<>();
     @ManyToMany
+    @JoinTable(name = "ASSIGNED_USER_ACTIVITIES",
+            joinColumns = @JoinColumn(name = "USER_ID", referencedColumnName = "ID"),
+            inverseJoinColumns = @JoinColumn(name = "ACTIVITY_ID", referencedColumnName = "ID"))
     private final Collection<ActivityEntity> assigned_activities = new ArrayList<>();
 
     public Long getId() {
