@@ -16,9 +16,12 @@
  */
 package it.cnr.istc.pst.extreme.webapp;
 
+import it.cnr.istc.pst.extreme.api.Employee;
 import it.cnr.istc.pst.extreme.api.User;
+import it.cnr.istc.pst.extreme.webapp.db.EmployeeEntity;
 import it.cnr.istc.pst.extreme.webapp.db.UserEntity;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -50,5 +53,14 @@ public class ExTrEMEResource {
     public Collection<User> getUsers() {
         List<UserEntity> users = em.createQuery("SELECT u FROM UserEntity u", UserEntity.class).getResultList();
         return users.stream().map(u -> new User(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName())).collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("employees")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Collection<Employee> getEmployees() {
+        List<EmployeeEntity> employees = em.createQuery("SELECT e FROM EmployeeEntity e", EmployeeEntity.class).getResultList();
+        return employees.stream().map(e -> new Employee(e.getId(), e.getEmail(), e.getFirstName(), e.getLastName(), JSONB.fromJson(e.getParameters(), new HashMap<String, String>() {
+        }.getClass().getGenericSuperclass()))).collect(Collectors.toList());
     }
 }
