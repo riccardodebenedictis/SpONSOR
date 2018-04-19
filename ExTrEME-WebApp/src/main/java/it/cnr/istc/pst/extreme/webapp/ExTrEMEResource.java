@@ -16,6 +16,7 @@
  */
 package it.cnr.istc.pst.extreme.webapp;
 
+import it.cnr.istc.pst.extreme.api.Credentials;
 import it.cnr.istc.pst.extreme.api.Employee;
 import it.cnr.istc.pst.extreme.api.User;
 import it.cnr.istc.pst.extreme.webapp.db.EmployeeEntity;
@@ -28,11 +29,17 @@ import java.util.stream.Collectors;
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * REST Web Service.
@@ -62,5 +69,22 @@ public class ExTrEMEResource {
         List<EmployeeEntity> employees = em.createQuery("SELECT e FROM EmployeeEntity e", EmployeeEntity.class).getResultList();
         return employees.stream().map(e -> new Employee(e.getId(), e.getEmail(), e.getFirstName(), e.getLastName(), JSONB.fromJson(e.getParameters(), new HashMap<String, String>() {
         }.getClass().getGenericSuperclass()))).collect(Collectors.toList());
+    }
+
+    @POST
+    @Path("login")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public User login(Credentials credentials) {
+        LOG.info("Logging in..");
+        try {
+            TypedQuery<UserEntity> query = em.createQuery("SELECT u FROM UserEntity u WHERE u.email = :email AND u.password = :password", UserEntity.class);
+            query.setParameter("email", credentials.email);
+            query.setParameter("password", credentials.password);
+            UserEntity u = query.getSingleResult();
+            return new User(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName());
+        } catch (NoResultException e) {
+            throw new WebApplicationException(e.getLocalizedMessage(), Response.Status.UNAUTHORIZED);
+        }
     }
 }

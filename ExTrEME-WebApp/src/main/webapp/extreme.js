@@ -16,6 +16,71 @@
  */
 
 $(document).ready(function () {
+    var uname = localStorage.getItem("username");
+    var upass = localStorage.getItem("password");
+    console.log("stored username is: " + uname);
+    console.log("stored password is: " + upass);
+    localStorage.setItem("username", null);
+    localStorage.setItem("password", null);
+    if (uname !== 'null' & upass !== 'null') {
+        console.log("login: " + uname + " " + upass);
+        login({email: uname, password: upass});
+    } else {
+        var btn_login = document.getElementById("btn_login");
+        btn_login.onclick = function () {
+            console.log("login button clicked");
+            uname = document.getElementById("email_input").value;
+            upass = document.getElementById("password_input").value;
+            console.log("login: " + uname + " " + upass);
+            login({email: uname, password: upass});
+        };
+    }
+});
+
+function login(credentials) {
+    console.log("login: " + credentials);
+    $.ajax({
+        type: 'POST',
+        url: "http://localhost:8080/ExTrEME-WebApp/ExTrEME/login",
+        contentType: 'application/json',
+        data: JSON.stringify(credentials),
+        error: function (xhr, ajaxOptions, thrownError) {
+            alert(thrownError);
+        }
+    }).then(function (user) {
+        var nav_bar = document.getElementById("nav_bar");
+        sessionStorage.setItem("user", user);
+        var login_form = document.getElementById("login_form");
+        nav_bar.removeChild(login_form);
+        localStorage.setItem("username", credentials.email);
+        localStorage.setItem("password", credentials.password);
+
+        var a = document.createElement("a");
+        a.href = "#";
+        a.className = "dropdown-toggle mx-sm-3 mb-2";
+        a.setAttribute("data-toggle", "dropdown");
+        var sp0 = document.createElement("span");
+        sp0.className = "fas fa-user";
+        a.appendChild(sp0);
+        var a_txt = document.createTextNode(user.first_name);
+        a.appendChild(a_txt);
+        nav_bar.append(a);
+
+        var btn = document.createElement("button");
+        btn.type = "submit";
+        btn.className = "btn btn-primary mb-2";
+        var btn_txt = document.createTextNode("Sign out");
+        btn.appendChild(btn_txt);
+        btn.onclick = function () {
+            localStorage.setItem("username", null);
+            localStorage.setItem("password", null);
+            location.reload();
+        };
+        nav_bar.append(btn);
+    });
+}
+
+function init() {
     console.log("retrieving users..");
     $.ajax({
         url: "http://localhost:8080/ExTrEME-WebApp/ExTrEME/users"
@@ -135,4 +200,4 @@ $(document).ready(function () {
         }
         tbl.appendChild(tbdy);
     });
-});
+}

@@ -16,6 +16,7 @@
  */
 package it.cnr.istc.pst.extreme.webapp;
 
+import it.cnr.istc.pst.extreme.webapp.db.UserEntity;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -23,6 +24,10 @@ import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 /**
  *
@@ -34,10 +39,19 @@ import javax.ejb.Startup;
 public class ExTrEMEBean {
 
     private static final Logger LOG = Logger.getLogger(ExTrEMEBean.class.getName());
+    private static final Jsonb JSONB = JsonbBuilder.create();
+    @PersistenceContext
+    private EntityManager em;
 
     @PostConstruct
     private void startup() {
         LOG.info("Starting ExTrEME server..");
+        UserEntity ue = new UserEntity();
+        ue.setEmail("riccardo.debenedictis@istc.cnr.it");
+        ue.setPassword("password001");
+        ue.setFirstName("Riccardo");
+        ue.setLastName("De Benedictis");
+        em.persist(ue);
     }
 
     @PreDestroy
