@@ -82,8 +82,10 @@ public class ExTrEMEResource {
             query.setParameter("email", credentials.email);
             query.setParameter("password", credentials.password);
             UserEntity u = query.getSingleResult();
+            LOG.info("User found..");
             return new User(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName());
         } catch (NoResultException e) {
+            LOG.info("User not found..");
             throw new WebApplicationException(e.getLocalizedMessage(), Response.Status.UNAUTHORIZED);
         }
     }
